@@ -6,14 +6,13 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { ArrowRight, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
+import AnimatedLogin from "./AnimatedLogin";
 import { supabase, workspace } from "./storage";
 import {
   sessionRemaining,
   usernameEmail,
   type MemberSession,
 } from "./access-model";
-import "./access.css";
 type Access = { member: MemberSession | null; signOut: () => Promise<void> };
 const AccessContext = createContext<Access>({
   member: null,
@@ -23,9 +22,7 @@ export const useAccess = () => useContext(AccessContext);
 export default function AuthGate({ children }: { children: ReactNode }) {
   const [member, setMember] = useState<MemberSession | null>(null);
   const [loading, setLoading] = useState(!!supabase);
-  const [busy, setBusy] = useState(false);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [entering, setEntering] = useState(false);
   const [error, setError] = useState("");
   const [local, setLocal] = useState(
     () => sessionStorage.getItem("mtr-local-preview") === "1",
@@ -41,7 +38,6 @@ export default function AuthGate({ children }: { children: ReactNode }) {
     generation.current++;
     clearTimeout(timer.current);
     setMember(null);
-    setPassword("");
     deadline.current = 0;
     if (supabase) await supabase.auth.signOut({ scope: "local" });
   }
@@ -136,143 +132,61 @@ export default function AuthGate({ children }: { children: ReactNode }) {
         {children}
       </AccessContext.Provider>
     );
-  if (member)
+  if (member && !entering)
     return (
       <AccessContext.Provider key={member.userId} value={{ member, signOut }}>
         {children}
       </AccessContext.Provider>
     );
   return (
-    <main className="access-page">
-      <section className="access-card">
-        <aside className="access-brand">
-          <img src="/guararapes.png" alt="Guararapes Painéis" />
-          <div>
-            <ShieldCheck size={36} />
-            <span>GESTÃO AMBIENTAL</span>
-            <h1>
-              Seu ambiente.
-              <br />
-              Seu acesso.
-              <br />
-              Tudo protegido.
-            </h1>
-            <p>
-              Controle e acompanhamento
-              <br />
-              de baixas de MTR.
-            </p>
-          </div>
-          <small>Guararapes Painéis</small>
-        </aside>
-        <div className="access-form">
-          <span className="access-lock">
-            <LockKeyhole size={24} />
-          </span>
-          <span className="eyebrow">CONTROLE DE MTR</span>
-          <h2>Bem-vindo de volta</h2>
-          <p>Entre com seu usuário e senha para continuar.</p>
-          <form
-            onSubmit={async (event) => {
-              event.preventDefault();
-              if (!supabase) return;
-              setBusy(true);
-              setError("");
-              try {
-                const email = usernameEmail(username, workspace);
-                const result = await supabase.auth.signInWithPassword({
-                  email,
-                  password,
-                });
-                setPassword("");
-                if (result.error) throw result.error;
-                await check();
-              } catch {
-                setError(
-                  "Usuário ou senha inválidos, ou conexão indisponível.",
-                );
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            <label>
-              Usuário
-              <div className="access-input">
-                <UserRound size={17} />
-                <input
-                  aria-label="Usuário"
-                  autoComplete="username"
-                  required
-                  maxLength={254}
-                  value={username}
-                  disabled={loading || busy}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Seu usuário"
-                />
-              </div>
-            </label>
-            <label>
-              Senha
-              <div className="access-input">
-                <LockKeyhole size={17} />
-                <input
-                  aria-label="Senha"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  maxLength={128}
-                  value={password}
-                  disabled={loading || busy}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Sua senha"
-                />
-              </div>
-            </label>
-            {error && (
-              <div className="access-error" role="alert">
-                {error}
-              </div>
-            )}
-            {!supabase && (
-              <div className="access-error">
-                O acesso deste ambiente ainda não foi ativado. Contate o
-                administrador.
-              </div>
-            )}
-            <button
-              className="button primary"
-              disabled={loading || busy || !supabase}
-            >
-              {loading
-                ? "Validando acesso…"
-                : busy
-                  ? "Entrando…"
-                  : "Entrar no painel"}
-              <ArrowRight size={17} />
-            </button>
-          </form>
-          <div className="access-session">
-            <ShieldCheck size={16} />
-            <span>
-              Sua sessão é válida por 24 horas.
-              <br />
-              Depois desse período, entre novamente.
-            </span>
-          </div>
-          {loopback && (
-            <button
-              className="access-local"
-              onClick={() => {
-                sessionStorage.setItem("mtr-local-preview", "1");
-                setLocal(true);
-              }}
-            >
-              Abrir modo local neste computador
-            </button>
-          )}
-        </div>
-      </section>
-    </main>
+    <AnimatedLogin
+      loading={loading}
+      configured={!!supabase}
+      error={error}
+      allowLocal={loopback}
+      onLocal={() => {
+        sessionStorage.setItem("mtr-local-preview", "1");
+        setLocal(true);
+      }}
+      onComplete={() => setEntering(false)}
+      onLogin={async (username, password) => {
+        if (!supabase) return false;
+        setEntering(true);
+        setError("");
+        try {
+          const email = usernameEmail(username, workspace);
+          const result = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          if (result.error) throw result.error;
+          // The playful challenge never grants access: membership and session
+          // are still verified by Supabase and the database before opening App.
+          const context = await supabase.rpc("mtr_session_context", {
+            p_workspace: workspace,
+          });
+          if (
+            context.error ||
+            !context.data ||
+            !sessionRemaining(context.data as MemberSession)
+          )
+            throw Error("Acesso recusado.");
+          const value = context.data as MemberSession;
+          const remaining = sessionRemaining(value);
+          deadline.current = performance.now() + remaining;
+          clearTimeout(timer.current);
+          timer.current = setTimeout(() => void expire(), remaining);
+          setMember(value);
+          setLoading(false);
+          return true;
+        } catch {
+          setMember(null);
+          setEntering(false);
+          setError("Usuário ou senha inválidos, ou acesso não autorizado.");
+          await supabase.auth.signOut({ scope: "local" });
+          return false;
+        }
+      }}
+    />
   );
 }

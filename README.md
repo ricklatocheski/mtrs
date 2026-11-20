@@ -30,6 +30,14 @@ O build usa os identificadores públicos de src/backend.ts. As três variáveis 
 
 Na Netlify, importe o repositório e use netlify.toml: npm ci && npm run build, pasta dist. Para publicação manual, envie dist inteira. O fallback SPA também está em dist/_redirects. Não houve deploy na conta Netlify nesta revisão. Ao mudar de projeto Supabase, ajuste também os destinos HTTPS/WSS do CSP em netlify.toml.
 
+## Guardião animado no login
+
+Personagem vetorial original inspirado no símbolo dourado fornecido, mantendo a logo oficial intacta. Os olhos seguem o ponteiro; o rosto reage ao foco, cobre os olhos ao digitar ou revelar a senha e faz um gesto para recolher o botão de entrada. Em seguida, apresenta uma conta aleatória de soma ou subtração, sem resultados negativos. Há retorno ao login, troca de conta e correção de resposta sem perder as credenciais digitadas. Após o desafio, o Supabase valida as credenciais e o vínculo antes de liberar o painel, com uma confirmação animada.
+
+O desafio é uma interação visual local; não é um CAPTCHA nem substitui autenticação, RLS ou as validações de sessão do servidor. Não registra respostas nem senhas no armazenamento do aplicativo. O login persistente válido continua respeitando o prazo original de 24 horas.
+
+Movimento usa SVG e CSS, sem nova dependência ou serviço externo. O ponteiro atualiza somente transformações em refs, limitado a um requestAnimationFrame por quadro; não há renderização React por movimento nem loop ocioso. Há botão de pausar animações e respeito a prefers-reduced-motion, conforme a [documentação MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/%40media/prefers-reduced-motion). Teclado e celular mantêm o mesmo fluxo com foco automático na resposta.
+
 ## Infraestrutura Supabase
 
 O ambiente entregue já recebeu as migrations e a função de cadastro. Para recriar em outro projeto:
@@ -78,6 +86,7 @@ Execute npm test, npm run test:e2e e npm run build. Os testes de login real usam
 - src/importer.ts: leitura e classificação.
 - src/domain.ts e supabase/setup.sql: acompanhamento, reservas e validações atômicas.
 - src/AuthGate.tsx e src/UserAccounts.tsx: login e cadastros.
+- src/AnimatedLogin.tsx, src/LoginGuardian.tsx, src/guardian.css: personagem e sequência animada.
 - src/ConferenceDialog.tsx: conferência e cópia.
 - supabase/migrations e supabase/functions/mtr-users: autorização no banco e cadastro administrativo.
 - tests e e2e: exemplos sintéticos e verificações; examples contém relatório de demonstração.

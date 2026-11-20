@@ -1,6 +1,6 @@
 # Validação — 20/11/2026
 
-Esta revisão teve **37 testes de regras, persistência, autenticação e SQL e 9 cenários únicos de navegador aprovados**, incluindo execuções focadas com Supabase real. Compilação TypeScript e build Vite de produção verificados na entrega.
+Esta revisão teve **39 testes de regras, persistência, autenticação e SQL e 12 cenários únicos de navegador aprovados**, incluindo execuções focadas com Supabase real. Compilação TypeScript e build Vite de produção verificados na entrega.
 
 ## Cobertura
 
@@ -14,9 +14,17 @@ Esta revisão teve **37 testes de regras, persistência, autenticação e SQL e 
 - Login inválido, painel protegido, administrador real cadastra operador, operador entra sem permissão administrativa, administrador bloqueia e novo acesso é recusado.
 - Avanço de 24 horas retorna ao login. SQL valida sessão original, sessão revogada, bloqueio e proteção do último administrador.
 
+## Animação do login
+
+- Olhos seguem o ponteiro; senha oculta ou revelada mantém o gesto de privacidade. Botão de pausa interrompe o acompanhamento e as animações.
+- Gesto de recolher botão abre conta aleatória. Resposta incorreta não inicia requisição de autenticação; foco permanece no campo de resposta. Voltar preserva campos; trocar conta limpa a resposta.
+- Somente resposta correta inicia login real. Credenciais inválidas continuam recusadas; sessão e perfil são verificados pelo banco. Sucesso exibe confirmação e abre o painel.
+- Movimento reduzido e Enter no celular validados, sem transbordamento horizontal após correção de largura do grid.
+- Não houve benchmark de FPS em equipamento físico. O personagem usa SVG/CSS e atualizações de transformação sem estado React por movimento.
+
 ## Ambiente real e limites
 
-Projeto Guararapes-MTR ativo em rickatocheski; migrations aplicadas e função de cadastro publicada. Login real confirmou prazo de 24 horas. Leitura anônima e token revogado foram recusados. Nenhum relatório real foi enviado ao Supabase. Importações de navegador usam modo local isolado. Uma conta sintética de QA permanece bloqueada após a validação de cadastro.
+Projeto Guararapes-MTR ativo em rickatocheski; migrations aplicadas e função de cadastro publicada. Login real confirmou prazo de 24 horas. Leitura anônima e token revogado foram recusados. Nenhum relatório real foi enviado ao Supabase. Importações de navegador usam modo local isolado. Contas sintéticas de QA permanecem bloqueadas após a validação de cadastro.
 
 O relatório operacional fornecido foi validado localmente em revisões anteriores, inclusive filtros, mapeamento, exportações e acompanhamento. Nenhum relatório, senha ou dado pessoal entrou no Git. Imagens de demonstração usam dados sintéticos.
 

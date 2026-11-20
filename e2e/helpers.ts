@@ -26,17 +26,31 @@ export async function importFile(page: Page, csv = sample) {
     name: "Importar relatório",
     exact: true,
   });
-  await dialog
-    .locator("input[type=file]")
-    .setInputFiles({
-      name: "teste-sintetico.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from(csv),
-    });
+  await dialog.locator("input[type=file]").setInputFiles({
+    name: "teste-sintetico.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(csv),
+  });
   const popup = page.getByRole("dialog", {
     name: "Conferência de MTR",
     exact: true,
   });
   await expect(popup).toBeVisible();
   return popup;
+}
+
+export async function solveLoginChallenge(page: Page) {
+  const equation = page.getByLabel("Conta do guardião", { exact: true });
+  await expect(equation).toBeVisible();
+  const content = (await equation.innerText()).replace(/\s+/g, "");
+  const match = /^(\d+)([+−])(\d+)=\?$/.exec(content);
+  if (!match) throw Error("Conta não encontrada.");
+  const answer =
+    match[2] === "+"
+      ? Number(match[1]) + Number(match[3])
+      : Number(match[1]) - Number(match[3]);
+  await page.getByLabel("Sua resposta", { exact: true }).fill(String(answer));
+  await page
+    .getByRole("button", { name: "Validar e entrar", exact: true })
+    .click();
 }

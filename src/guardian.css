@@ -1,0 +1,709 @@
+.guardian-page {
+  grid-template-columns: minmax(0, 1fr);
+  background:
+    radial-gradient(ellipse at 12% 15%, #e4e8dc 0, transparent 55%), #f0f1eb;
+  padding: 48px 24px 26px;
+  align-content: center;
+  gap: 26px;
+}
+.guardian-card {
+  grid-template-columns: 460px 460px;
+  min-height: 660px;
+  border-radius: 22px;
+  border-color: #dfe4d9;
+  box-shadow: 0 24px 80px #263b2912;
+  overflow: visible;
+}
+.guardian-brand {
+  position: relative;
+  padding: 35px 38px 23px;
+  border-radius: 21px 0 0 21px;
+  background:
+    radial-gradient(ellipse at 70% 50%, #3e57422b, transparent 65%),
+    linear-gradient(155deg, #1c3028f5, #1c2b24ed),
+    url("/madeira.jpg") center/cover;
+  isolation: isolate;
+}
+.guardian-brand > img {
+  width: 197px;
+}
+.guardian-brand > .guardian-intro {
+  margin: 34px 0 0;
+  padding: 0;
+}
+.guardian-kicker {
+  color: #d6b684;
+  font-size: 8px;
+  letter-spacing: 1.9px;
+}
+.guardian-brand h1 {
+  margin-top: 11px;
+  font-size: 30px;
+  line-height: 1.35;
+  letter-spacing: -1px;
+  color: #f2e5cd;
+}
+.guardian-brand h1 em {
+  font-weight: 450;
+  font-style: normal;
+  color: #c9ac7e;
+}
+.guardian-brand > .guardian-scene {
+  margin: 5px -13px 0;
+  padding: 0;
+  position: relative;
+}
+.guardian {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+}
+.guardian svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.guardian-head {
+  transform-origin: 180px 180px;
+  transition: transform 160ms ease-out;
+}
+.guardian-pupils {
+  transition: transform 120ms ease-out;
+}
+.guardian-eyes {
+  transform-origin: 180px 184px;
+  animation: guardian-blink 6s 2s infinite;
+}
+.guardian-hand {
+  transform-box: view-box;
+  transition: transform 500ms cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+.guardian-hand-left {
+  transform-origin: 121px 315px;
+}
+.guardian-hand-right {
+  transform-origin: 249px 315px;
+}
+.guardian-serious {
+  opacity: 0;
+  transition: opacity 180ms;
+}
+.guardian-smile {
+  opacity: 1;
+  transition: opacity 180ms;
+}
+.guardian-brow-left {
+  transform-origin: 150px 163px;
+  transition: transform 220ms;
+}
+.guardian-brow-right {
+  transform-origin: 208px 163px;
+  transition: transform 220ms;
+}
+.guardian-success-mark {
+  opacity: 0;
+  transform: scale(0.5);
+  transform-origin: 277px 92px;
+  transition:
+    transform 350ms cubic-bezier(0.2, 1.6, 0.5, 1),
+    opacity 180ms;
+}
+.guardian-private .guardian-hand-left {
+  transform: translate(12px, -91px) rotate(18deg);
+}
+.guardian-private .guardian-hand-right {
+  transform: translate(-17px, -91px) rotate(-18deg);
+}
+.guardian-private .guardian-eyes {
+  animation: none;
+  transform: scaleY(0.12);
+}
+.guardian-reaching .guardian-hand-right {
+  transform: translate(55px, -12px) rotate(52deg);
+}
+.guardian-reaching .guardian-brow-right {
+  transform: translateY(-4px) rotate(-9deg);
+}
+.guardian-challenge .guardian-hand-right,
+.guardian-checking .guardian-hand-right {
+  transform: translate(10px, -35px) rotate(-12deg);
+}
+.guardian-challenge .guardian-smile,
+.guardian-checking .guardian-smile {
+  opacity: 0;
+}
+.guardian-challenge .guardian-serious,
+.guardian-checking .guardian-serious {
+  opacity: 1;
+}
+.guardian-challenge .guardian-brow-left,
+.guardian-checking .guardian-brow-left {
+  transform: rotate(10deg) translateY(2px);
+}
+.guardian-challenge .guardian-brow-right,
+.guardian-checking .guardian-brow-right {
+  transform: rotate(-10deg) translateY(2px);
+}
+.guardian-success .guardian-hand-right {
+  transform: translate(17px, -69px) rotate(18deg);
+}
+.guardian-success .guardian-eyes {
+  transform: scaleY(0.65);
+  animation: none;
+}
+.guardian-success .guardian-success-mark {
+  opacity: 1;
+  transform: scale(1);
+}
+.guardian-speech {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  width: max-content;
+  max-width: 100%;
+  margin: -9px auto 0;
+  border: 1px solid #cdb48535;
+  border-radius: 24px;
+  background: #263a2d;
+  padding: 10px 15px;
+  font-size: 10px;
+  color: #e6d3b4;
+  line-height: 1.5;
+}
+.speech-dot {
+  width: 5px;
+  height: 5px;
+  background: #d5b17d;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.guardian-brand-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 18px;
+}
+.guardian-brand-footer > span {
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: #a6ad91;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.guardian-brand-footer i {
+  height: 3px;
+  width: 3px;
+  background: #b99b6d;
+  border-radius: 50%;
+}
+.guardian-motion {
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 1px solid #e2c48d38;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #d6bc92;
+}
+.guardian-motion:hover {
+  background: #d6bc9212;
+}
+.guardian-form {
+  display: flex;
+  flex-direction: column;
+  padding: 36px 43px 27px;
+  min-width: 0;
+}
+.login-step-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 49px;
+  color: #85917c;
+  font-size: 8px;
+  letter-spacing: 1.4px;
+}
+.login-step-label .access-lock {
+  margin: 0;
+  height: 35px;
+  width: 35px;
+  border-radius: 10px;
+  background: #eff2e9;
+}
+.login-step-count {
+  margin-left: auto;
+  color: #46614d;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+}
+.login-step-count i {
+  font-style: normal;
+  color: #b3baa9;
+  margin-left: 4px;
+  font-weight: 400;
+}
+.guardian-form .eyebrow {
+  color: #a58a5d;
+  font-size: 8px;
+  letter-spacing: 1.6px;
+}
+.guardian-form h2 {
+  font-size: 29px;
+  letter-spacing: -1.25px;
+  margin: 10px 0 10px;
+  color: #233a2d;
+  line-height: 1.3;
+}
+.guardian-form > p,
+.guardian-challenge-content > p {
+  color: #87917e;
+  font-size: 12px;
+  line-height: 1.85;
+}
+.guardian-form form {
+  margin-top: 29px;
+  gap: 18px;
+}
+.guardian-form label {
+  font-size: 11px;
+  color: #65745c;
+}
+.guardian-form .access-input {
+  border-color: #dfe4d8;
+  border-radius: 9px;
+  padding: 0 13px;
+  background: #fcfdfb;
+}
+.guardian-form .access-input input {
+  background: transparent;
+  font-size: 12px;
+  padding: 15px 0;
+}
+.guardian-form .access-input input::placeholder {
+  color: #a2aa9b;
+}
+.login-password-toggle {
+  background: transparent;
+  padding: 5px;
+  border: 0;
+  display: grid;
+  place-items: center;
+  color: #8b987e;
+}
+.guardian-form .button.primary {
+  min-height: 46px;
+  border-radius: 9px;
+  background: #234d3b;
+  border: 1px solid #234d3b;
+  font-size: 12px;
+  box-shadow: 0 3px 0 #193b2e10;
+}
+.guardian-form .button.primary:hover {
+  background: #1a3b2e;
+}
+.login-submit-wrap {
+  position: relative;
+}
+.login-submit {
+  transition:
+    transform 200ms,
+    opacity 200ms,
+    background 150ms;
+}
+.login-catching-hand {
+  position: absolute;
+  top: -1px;
+  left: -100px;
+  width: 105px;
+  height: 75px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.stage-reaching .login-catching-hand {
+  animation: guardian-catch 720ms cubic-bezier(0.25, 0.6, 0.3, 1) both;
+}
+.stage-reaching .login-submit {
+  animation: guardian-take-button 720ms cubic-bezier(0.3, 0.6, 0.2, 1) both;
+}
+.guardian-form .access-session {
+  margin-top: auto;
+  padding-top: 18px;
+  color: #8b9781;
+  font-size: 9px;
+  line-height: 1.8;
+}
+.guardian-form .access-local {
+  align-self: flex-start;
+  margin-top: 12px;
+  font-size: 9px;
+}
+.guardian-challenge-content {
+  animation: guardian-panel-in 300ms ease-out;
+}
+.guardian-challenge-content h2 {
+  font-size: 27px;
+}
+.guardian-challenge-content form {
+  margin-top: 24px;
+  gap: 14px;
+}
+.guardian-math-card {
+  background: #f5f5ed;
+  border: 1px solid #e2e5d5;
+  border-radius: 13px;
+  padding: 17px 12px 14px;
+  text-align: center;
+  overflow: hidden;
+}
+.math-card-tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #8e835f;
+  font-size: 8px;
+  letter-spacing: 1.1px;
+}
+.guardian-equation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-family: "Manrope", sans-serif;
+  font-size: 37px;
+  font-weight: 650;
+  color: #2f4d37;
+  line-height: 1;
+  padding: 23px 0;
+}
+.guardian-equation i {
+  font-size: 24px;
+  color: #a5af95;
+  font-style: normal;
+  font-weight: 450;
+}
+.math-question {
+  display: grid;
+  place-items: center;
+  background: #e9eddf;
+  border: 1px dashed #b8c5a5;
+  border-radius: 8px;
+  width: 48px;
+  height: 50px;
+  color: #8b9d74;
+}
+.math-card-foot {
+  color: #9ca68f;
+  font-size: 7px;
+  letter-spacing: 1.6px;
+}
+.math-answer input {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.math-answer.answer-error {
+  animation: guardian-answer-shake 260ms ease-out;
+  border-color: #be9376;
+}
+.guardian-form .access-error {
+  font-size: 11px;
+  padding: 9px 11px;
+}
+.math-secondary {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.math-secondary button {
+  padding: 4px 0;
+  background: none;
+  border: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #7a896b;
+  font-size: 10px;
+}
+.math-secondary button:hover {
+  color: #284a33;
+}
+.math-success {
+  display: grid;
+  place-items: center;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  margin: 16px auto;
+  color: #3d6950;
+  background: #e1ebd8;
+  animation: guardian-panel-in 350ms ease-out;
+}
+.guardian-checking,
+.guardian-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #63805c;
+  min-height: 61px;
+  font-size: 12px;
+}
+.login-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d9e2d0;
+  border-top-color: #597f50;
+  border-radius: 50%;
+  animation: login-spin 700ms linear infinite;
+}
+.math-checking .math-question {
+  animation: guardian-wait 1s ease-in-out infinite alternate;
+}
+.guardian-page-footer {
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: #9aa38e;
+  display: flex;
+  gap: 11px;
+}
+@keyframes guardian-blink {
+  0%,
+  43%,
+  47%,
+  100% {
+    transform: scaleY(1);
+  }
+  45% {
+    transform: scaleY(0.08);
+  }
+}
+@keyframes guardian-catch {
+  0% {
+    opacity: 0;
+    transform: translate(-30px, 20px) rotate(-8deg);
+  }
+  25%,
+  55% {
+    opacity: 1;
+    transform: translate(94px, -5px) rotate(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-25px, 14px) rotate(-8deg);
+  }
+}
+@keyframes guardian-take-button {
+  0%,
+  35% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  65% {
+    opacity: 0.8;
+    transform: translateX(-20px) scale(0.96);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-70px) scale(0.86);
+  }
+}
+@keyframes guardian-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes guardian-answer-shake {
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+@keyframes guardian-wait {
+  to {
+    opacity: 0.4;
+    transform: scale(0.95);
+  }
+}
+@keyframes login-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.motion-paused *,
+.guardian-paused * {
+  animation: none !important;
+  transition-duration: 0s !important;
+}
+.motion-paused .stage-reaching .login-submit {
+  opacity: 0.5;
+}
+@media (max-width: 980px) and (min-width: 641px) {
+  .guardian-card {
+    grid-template-columns: minmax(280px, 1fr) minmax(320px, 1fr);
+    width: 100%;
+    max-width: 850px;
+  }
+  .guardian-brand {
+    padding-inline: 27px;
+  }
+  .guardian-form {
+    padding-inline: 28px;
+  }
+  .guardian-brand h1 {
+    font-size: 26px;
+  }
+  .guardian-form h2 {
+    font-size: 25px;
+  }
+}
+@media (max-width: 640px) {
+  .guardian-page {
+    padding: 16px 14px;
+    gap: 17px;
+  }
+  .guardian-card {
+    grid-template-columns: minmax(0, 1fr);
+    width: 430px;
+    min-height: auto;
+    border-radius: 19px;
+    overflow: hidden;
+  }
+  .guardian-brand {
+    border-radius: 18px 18px 0 0;
+    padding: 21px 25px 13px;
+    min-height: 242px;
+  }
+  .guardian-brand > img {
+    width: 154px;
+    position: relative;
+    z-index: 2;
+  }
+  .guardian-brand > .guardian-intro {
+    display: block;
+    margin: 33px 0 0;
+    width: 52%;
+  }
+  .guardian-kicker {
+    font-size: 6px;
+    letter-spacing: 0.8px;
+  }
+  .guardian-brand .guardian-intro > .guardian-kicker {
+    margin: 0;
+    font-size: 6px;
+    letter-spacing: 0.8px;
+  }
+  .guardian-brand h1 {
+    font-size: 20px;
+    margin-top: 8px;
+    line-height: 1.5;
+    letter-spacing: -0.6px;
+  }
+  .guardian-brand h1 em {
+    display: block;
+    font-size: 17px;
+  }
+  .guardian-brand > .guardian-scene {
+    display: block;
+    position: absolute;
+    width: 194px;
+    right: -4px;
+    top: 19px;
+    margin: 0;
+  }
+  .guardian-speech {
+    position: absolute;
+    width: 100%;
+    max-width: 100%;
+    top: 183px;
+    right: 13px;
+    font-size: 7px;
+    padding: 6px 7px;
+    white-space: nowrap;
+    gap: 4px;
+  }
+  .speech-dot {
+    width: 3px;
+    height: 3px;
+  }
+  .guardian-brand-footer {
+    padding-top: 20px;
+    margin-top: auto;
+  }
+  .guardian-brand-footer > span {
+    font-size: 6px;
+    letter-spacing: 0.5px;
+  }
+  .guardian-motion {
+    width: 23px;
+    height: 23px;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+  }
+  .guardian-motion svg {
+    width: 11px;
+  }
+  .guardian-form {
+    padding: 23px 25px 24px;
+  }
+  .login-step-label {
+    margin-bottom: 23px;
+    font-size: 7px;
+  }
+  .login-step-label .access-lock {
+    display: grid;
+    width: 30px;
+    height: 30px;
+  }
+  .guardian-form h2 {
+    font-size: 25px;
+  }
+  .guardian-form > p {
+    font-size: 11px;
+  }
+  .guardian-form > p br {
+    display: none;
+  }
+  .guardian-form form {
+    margin-top: 21px;
+    gap: 16px;
+  }
+  .guardian-form .access-session {
+    margin-top: 25px;
+    padding-top: 15px;
+  }
+  .guardian-page-footer {
+    font-size: 6px;
+    letter-spacing: 1px;
+  }
+  .guardian-challenge-content h2 {
+    font-size: 24px;
+  }
+  .guardian-equation {
+    padding: 20px 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .guardian-page *,
+  .guardian-page *::before,
+  .guardian-page *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

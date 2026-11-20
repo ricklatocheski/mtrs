@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { randomBytes } from "node:crypto";
+import { solveLoginChallenge } from "./helpers";
 const adminPassword = process.env.MTR_TEST_ADMIN_PASSWORD;
 test("tela de login não expõe dados antes da autenticação", async ({
   page,
@@ -16,6 +17,7 @@ test("tela de login não expõe dados antes da autenticação", async ({
   await page
     .getByRole("button", { name: "Entrar no painel", exact: true })
     .click();
+  await solveLoginChallenge(page);
   await expect(page.getByRole("alert")).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Bem-vindo de volta", exact: true }),
@@ -35,6 +37,7 @@ test("admin cadastra usuário, operador entra e é bloqueado no servidor", async
   await page
     .getByRole("button", { name: "Entrar no painel", exact: true })
     .click();
+  await solveLoginChallenge(page);
   await expect(
     page.getByRole("heading", { name: "Visão geral", exact: true }),
   ).toBeVisible();
@@ -62,6 +65,7 @@ test("admin cadastra usuário, operador entra e é bloqueado no servidor", async
   await operator
     .getByRole("button", { name: "Entrar no painel", exact: true })
     .click();
+  await solveLoginChallenge(operator);
   await expect(
     operator.getByRole("heading", { name: "Visão geral", exact: true }),
   ).toBeVisible();
@@ -108,6 +112,7 @@ test("a interface exige novo login depois de 24 horas", async ({ page }) => {
   await page
     .getByRole("button", { name: "Entrar no painel", exact: true })
     .click();
+  await solveLoginChallenge(page);
   await expect(
     page.getByRole("heading", { name: "Visão geral", exact: true }),
   ).toBeVisible();
