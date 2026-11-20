@@ -2,7 +2,9 @@
 
 Sistema de apoio à conferência e acompanhamento manual de baixas de Manifestos de Transporte de Resíduos. Interface em português, logo original fornecida e identidade em verde-floresta, madeira e branco.
 
-A sidebar reproduz o painel de erros de lançamento: fundo grafite, logo no topo, rótulo Recebimento, mesmos espaçamentos e destaque do menu ativo em verde-oliva com texto dourado e chevron. Os links são os do controle de MTR. Em tablets, vira uma faixa de ícones; no celular, a navegação fica na barra inferior, como na referência. A janela de importação também segue essa referência visual: fundo desfocado, faixa de madeira com a marca à esquerda e área clara com as etapas de relatório, revisão e confirmação à direita. No celular, a faixa decorativa é ocultada para priorizar a operação.
+A sidebar reproduz o painel de erros de lançamento: fundo grafite, logo no topo, rótulo Recebimento, mesmos espaçamentos e destaque do menu ativo em verde-oliva com texto dourado e chevron. Os links são os do controle de MTR. Em tablets, vira uma faixa de ícones; no celular, a navegação fica na barra inferior, como na referência.
+
+**A conferência acontece em uma janela central e abre automaticamente depois de confirmar a importação.** Ela segue a referência do painel de erros de lançamento: fundo desfocado, faixa de madeira com a marca e progresso à esquerda, e um MTR por vez à direita. Número, situação original, data, motorista, placa, gerador e observações têm botões visíveis de cópia individual. A janela de importação usa a mesma identidade. No celular, a faixa decorativa é ocultada para priorizar os dados e as ações.
 
 **A confirmação registra a declaração do operador. O sistema não acessa nem confirma baixas no portal oficial e nunca altera a situação original do relatório.**
 
@@ -28,10 +30,10 @@ Não abra `dist/index.html` diretamente por `file://`: use um servidor HTTP ou p
 
 1. Clique em **Importar relatório** ou arraste o arquivo na área de importação. Aceita CSV, XLS e XLSX, até 30 MB. Em arquivos com várias abas, selecione a aba desejada.
 2. Confira a prévia, as contagens e as inconsistências. O processamento acontece no navegador, sem IA externa. CSV aceita separador detectado automaticamente (incluindo `;`), aspas, aspas duplicadas e quebras dentro de campos. A detecção de codificação tenta BOM UTF-16, UTF-8 estrito e Windows-1252; é possível selecionar outra codificação na tela.
-3. Confirme a importação. Reimportar um MTR existente conserva dados vigentes, estado e conclusões. Novas origens são anexadas e divergências ficam sinalizadas. Os sete campos originais ficam nas origens (`raw`); dados normalizados para operação ficam em `data`.
-4. Inicie a conferência. Abrir um MTR reserva o atendimento por cinco minutos. **Abrir, copiar, aguardar, pular e navegar nunca concluem um documento.** A reserva expirada volta a contar como pendente; use **Reservar para conferir** para retomá-la.
-5. Realize a baixa no portal oficial. Só então clique em **Confirmar baixa realizada**. A conclusão é registrada em verde, os contadores são atualizados e o próximo documento disponível é aberto.
-6. **Pular por enquanto** libera o MTR e o mantém pendente. **Anterior** volta ao documento anterior visitado. **Desfazer última conclusão** cancela a última conclusão da sessão, e **Reabrir** permite retomar qualquer concluído. Todas essas ações geram histórico.
+3. Confirme a importação. O sistema abre automaticamente a janela de conferência no primeiro MTR pendente **do lote importado**. Se todos já estiverem concluídos, ou não houver elegíveis, mostra o resumo correspondente. Reimportar um MTR existente conserva dados vigentes, estado e conclusões. Novas origens são anexadas e divergências ficam sinalizadas. Os sete campos originais ficam nas origens (`raw`); dados normalizados para operação ficam em `data`.
+4. Dentro da janela, confira os dados e use **Copiar** em cada campo ou **Copiar resumo completo**. Abrir um MTR reserva o atendimento por cinco minutos. **Abrir, copiar, aguardar, fechar e navegar nunca concluem um documento.** A reserva expirada volta a contar como pendente; use **Reservar para conferir** para retomá-la.
+5. Realize a baixa no portal oficial. Só então clique em **Confirmar baixa realizada**. Uma confirmação verde identifica o MTR concluído, o progresso é atualizado e o próximo documento disponível aparece **na mesma janela**. Ao terminar a passagem pela fila, ela mostra o resumo com concluídos e pendências.
+6. **Pular por enquanto** libera o MTR e o mantém pendente para retomar depois. Ao pular todos os documentos restantes, o resumo oferece **Retomar pendentes**. **Anterior** volta ao documento anterior visitado. **Desfazer última conclusão** desfaz a última conclusão disponível, inclusive no resumo final; **Reabrir MTR** retoma um concluído. Fechar a janela libera sua reserva ativa e mantém o progresso salvo. O painel e a opção Conferência permitem reabri-la. Todas essas ações de acompanhamento geram histórico.
 7. Divergências impedem uma nova conclusão até que uma origem elegível seja escolhida em **Origens e histórico**. A escolha não apaga nenhuma origem e não modifica conclusões antigas.
 
 Em **Todos os MTRs**, busque pelo conteúdo, filtre por estado, período de **emissão**, gerador ou lote e abra qualquer documento. A tabela é paginada em 25 registros. O histórico mostra até 500 resultados por busca; a exportação inclui todos os eventos.
@@ -138,6 +140,8 @@ Consulte `VALIDACAO.md` para resultados e limitações. As dependências têm ve
 - `src/storage.ts`: IndexedDB, atualização entre abas, autenticação e RPC Supabase.
 - `src/exporter.ts`: CSV, XLSX e backup JSON.
 - `src/App.tsx`, `src/styles.css`: interface responsiva.
+- `src/ConferenceDialog.tsx`, `src/conference.css`: janela de conferência, cópia por campo, progresso e resumo da fila.
+- `src/CopyButton.tsx`: confirmação visual de cópia, reiniciada ao mudar de documento.
 - `supabase/setup.sql`: tabelas, RLS, RPC atômico e publicação Realtime.
 - `tests/`: regras e SQL em PostgreSQL WASM/PGlite, com dados sintéticos.
 - `e2e/`: fluxo completo no Chromium.

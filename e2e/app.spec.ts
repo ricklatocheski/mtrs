@@ -27,13 +27,15 @@ test("fluxo local completo, recarga, segunda aba, exportações e backup", async
   await expect(page.locator(".stat-card").nth(0).locator("strong")).toHaveText(
     "2",
   );
-  await page
-    .getByRole("button", { name: "Iniciar conferência", exact: true })
-    .click();
+  const conference = page.getByRole("dialog", {
+    name: "Conferência de MTR",
+    exact: true,
+  });
+  await expect(conference).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "000001", exact: true }),
   ).toBeVisible();
-  await expect(page.getByText("GRC", { exact: true })).toHaveCount(2);
+  await expect(conference.getByText("GRC", { exact: true })).toHaveCount(2);
   await expect(page.locator(".stat-card").nth(2).locator("strong")).toHaveText(
     "1",
   );
@@ -65,6 +67,9 @@ test("fluxo local completo, recarga, segunda aba, exportações e backup", async
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Confirmar baixa realizada", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Retomar pendentes", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "000002", exact: true }),

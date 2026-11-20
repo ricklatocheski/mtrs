@@ -52,6 +52,7 @@ import {
   type RemoteSnapshot,
 } from "./storage";
 import { exportData, exportBackup } from "./exporter";
+import ConferenceDialog from "./ConferenceDialog";
 type Page = "painel" | "fila" | "registros" | "historico" | "config";
 const labels: Record<string, string> = {
   pendente: "Pendente",
@@ -188,6 +189,10 @@ export default function App() {
   const [toast, setToast] = useState("");
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
+  const [conferenceOpen, setConferenceOpen] = useState(false);
+  const [queueIds, setQueueIds] = useState<string[] | null>(null);
+  const [queueBatchName, setQueueBatchName] = useState("Todos os lotes");
+  const [skippedIds, setSkippedIds] = useState<string[]>([]);
   const [visited, setVisited] = useState<string[]>([]);
   const [lastDone, setLastDone] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -277,6 +282,8 @@ export default function App() {
   }
   useEffect(() => {
     setSelected(null);
+    setConferenceOpen(false);
+    setQueueIds(null);
     setDoc(empty());
     setRemote(null);
     remoteVersion.current = -1;
@@ -389,7 +396,7 @@ export default function App() {
       setBusy(false);
     }
   }
-  async function openRecord(r: MTR) {
+  async function openRecord(r: MTR, preserveQueue = false) {
     let source = doc;
     if (
       current &&
@@ -401,12 +408,22 @@ export default function App() {
       if (!released) return;
       source = released;
     }
+    if (!preserveQueue) {
+      setQueueIds(null);
+      setQueueBatchName("Todos os lotes");
+      setSkippedIds([]);
+    }
+    setConferenceOpen(true);
     setSelected(r.id);
     setVisited((v) => [...v.filter((id) => id !== r.id), r.id]);
-    go("fila");
     if (effectiveState(r) !== "concluido") await claimAfter(r.id, source);
   }
-  const nextRecord = (s: Snapshot, except?: string) => {
+  const nextRecord = (
+    s: Snapshot,
+    except?: string,
+    scope = queueIds,
+    skipped: string[] = [],
+  ) => {
     const start = s.records.findIndex((r) => r.id === except);
     const order = [
       ...s.records.slice(start + 1),
@@ -415,12 +432,14 @@ export default function App() {
     return order.find(
       (r) =>
         r.id !== except &&
+        (!scope || scope.includes(r.id)) &&
+        !skipped.includes(r.id) &&
         effectiveState(r) !== "concluido" &&
         !(effectiveState(r) === "conferencia" && r.owner !== actor),
     );
   };
-  async function advance(s: Snapshot, except?: string) {
-    const next = nextRecord(s, except);
+  async function advance(s: Snapshot, except?: string, skipped = skippedIds) {
+    const next = nextRecord(s, except, queueIds, skipped);
     if (next) {
       setSelected(next.id);
       setVisited((v) => [...v, next.id]);
@@ -431,6 +450,7 @@ export default function App() {
   async function claimAfter(id: string, s: Snapshot) {
     try {
       setBusy(true);
+      setError("");
       if (mode === "local") {
         setDoc(await localApply({ type: "claim", id }, actor));
       } else {
@@ -470,7 +490,62 @@ export default function App() {
     const s = await execute({ type: "release", id: current.id });
     if (s) {
       say("MTR mantido pendente.");
-      await advance(s, current.id);
+      const skipped = [...new Set([...skippedIds, current.id])];
+      setSkippedIds(skipped);
+      await advance(s, current.id, skipped);
+    }
+  }
+  async function beginConference(source = doc, scope = queueIds) {
+    setQueueIds(scope);
+    setQueueBatchName(
+      scope
+        ? (source.batches.at(-1)?.name ?? "Lote importado")
+        : "Todos os lotes",
+    );
+    setSkippedIds([]);
+    setVisited([]);
+    setError("");
+    setConferenceOpen(true);
+    const next = nextRecord(source, undefined, scope, []);
+    setSelected(next?.id ?? null);
+    if (next) {
+      setVisited([next.id]);
+      await claimAfter(next.id, source);
+    }
+  }
+  async function closeConference() {
+    if (busy) return;
+    if (
+      current &&
+      effectiveState(current) === "conferencia" &&
+      current.owner === actor
+    ) {
+      const released = await execute({ type: "release", id: current.id });
+      if (!released) return;
+    }
+    setConferenceOpen(false);
+    setSelected(null);
+  }
+  async function undoLast() {
+    if (!lastDone) return;
+    const id = lastDone;
+    const result = await execute({ type: "undo", id });
+    if (result) {
+      setLastDone(null);
+      say("Conclusão desfeita.");
+      if (!current) {
+        setSelected(id);
+        setVisited((v) => [...v, id]);
+        await claimAfter(id, result);
+      }
+    }
+  }
+  async function previousRecord() {
+    const previous = visited.at(-2);
+    const record = doc.records.find((r) => r.id === previous);
+    if (record) {
+      setVisited((v) => v.slice(0, -2));
+      await openRecord(record, true);
     }
   }
   async function copy(text: string) {
@@ -519,12 +594,18 @@ export default function App() {
       setFile(null);
       say("Lote importado. Histórico anterior preservado.");
       go("painel");
+      await beginConference(
+        s,
+        preview.records.map((r) => r.id),
+      );
     }
   }
   function changeMode(value: "local" | "shared") {
     setMode(value);
     localStorage.setItem("mtr-mode", value);
     setSelected(null);
+    setConferenceOpen(false);
+    setQueueIds(null);
     setLastDone(null);
     setRetry(null);
   }
@@ -560,9 +641,9 @@ export default function App() {
           : page === "historico"
             ? "Rastreabilidade de cada ação realizada."
             : "Armazenamento, acesso e segurança dos dados.";
-  const currentBadge = current ? effectiveState(current) : null;
-  const owned =
-    current && currentBadge === "conferencia" && current.owner === actor;
+  const queueRecords = doc.records.filter(
+    (r) => !queueIds || queueIds.includes(r.id),
+  );
   const reviewed = doc.batches.find((b) => b.id === reviewBatch);
   return (
     <div className="shell">
@@ -584,7 +665,10 @@ export default function App() {
               key={id}
               aria-label={title}
               aria-current={page === id ? "page" : undefined}
-              onClick={() => go(id)}
+              onClick={() => {
+                go(id);
+                if (id === "fila") void beginConference();
+              }}
               className={page === id ? "nav-item selected" : "nav-item"}
             >
               <Icon size={19} />
@@ -812,10 +896,10 @@ export default function App() {
                         <button
                           className="button primary"
                           onClick={() => {
-                            const r = nextRecord(doc);
-                            if (r) void openRecord(r);
-                            else if (!doc.records.length) setImportOpen(true);
-                            else go("registros");
+                            if (!doc.records.length) setImportOpen(true);
+                            else if (done === doc.records.length)
+                              go("registros");
+                            else void beginConference(doc, null);
                           }}
                         >
                           <ClipboardCheck size={18} />
@@ -955,272 +1039,28 @@ export default function App() {
               {page === "fila" && (
                 <section className="panel queue-panel">
                   <div className="section-title">
-                    <h2>Conferência do documento</h2>
-                    <span className="subtle-tag">
-                      {current
-                        ? "MTR " +
-                          (doc.records.findIndex((r) => r.id === current.id) +
-                            1) +
-                          " de " +
-                          doc.records.length
-                        : "Fila de trabalho"}
-                    </span>
+                    <h2>Conferência de MTR</h2>
+                    <span className="subtle-tag">Um documento por vez</span>
                   </div>
-                  {!current ? (
-                    <div className="empty">
-                      <ClipboardCheck size={40} />
-                      <h2>
-                        {done === doc.records.length && done > 0
-                          ? "Fila concluída"
-                          : "Selecione o próximo MTR"}
-                      </h2>
-                      <p>
-                        {pending + active > 0
-                          ? `${pending + active} documentos ainda precisam de conferência.`
-                          : "As conclusões registradas representam a informação dos operadores."}
-                      </p>
-                      <button
-                        className="button primary"
-                        disabled={
-                          busy ||
-                          !doc.records.some(
-                            (r) => effectiveState(r) !== "concluido",
-                          )
-                        }
-                        onClick={() => {
-                          const r = nextRecord(doc);
-                          if (r) void openRecord(r);
-                          else
-                            say(
-                              "Os MTRs disponíveis estão reservados por outros operadores.",
-                            );
-                        }}
-                      >
-                        Retomar fila
-                      </button>
-                      {lastDone && (
-                        <button
-                          className="text-button"
-                          disabled={busy}
-                          onClick={async () => {
-                            const s = await execute({
-                              type: "undo",
-                              id: lastDone,
-                            });
-                            if (s) {
-                              setLastDone(null);
-                              setSelected(lastDone);
-                              say("Última conclusão desfeita.");
-                            }
-                          }}
-                        >
-                          Desfazer última conclusão
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    <>
-                      <div
-                        className={
-                          "mtr-heading " +
-                          (currentBadge === "concluido" ? "completed" : "")
-                        }
-                      >
-                        <div>
-                          <span className="eyebrow">
-                            MANIFESTO DE TRANSPORTE DE RESÍDUOS
-                          </span>
-                          <div className="mtr-number">
-                            <h2>{current.id}</h2>
-                            <CopyButton
-                              onClick={() => copy(current.id)}
-                              label="Copiar número do MTR"
-                            />
-                          </div>
-                        </div>
-                        <Badge r={current} />
-                      </div>
-                      {current.conflict && (
-                        <div className="notice warning">
-                          <AlertCircle size={20} />
-                          <span>
-                            Dados divergentes entre origens. Revise antes de
-                            concluir.
-                          </span>
-                          <button onClick={() => setAudit(current)}>
-                            Revisar origens
-                          </button>
-                        </div>
-                      )}
-                      <div className="record-grid">
-                        {fields.slice(2).map((k) => (
-                          <div
-                            className={
-                              "record-field " +
-                              (k === "Observações do Gerador" ||
-                              k === "Gerador Nome"
-                                ? "full"
-                                : "")
-                            }
-                            key={k}
-                          >
-                            <span>{k}</span>
-                            <div>
-                              <strong>
-                                {[
-                                  "Motorista",
-                                  "Placa",
-                                  "Observações do Gerador",
-                                ].includes(k)
-                                  ? display(current.data[k])
-                                  : current.data[k]}
-                              </strong>
-                              <CopyButton
-                                onClick={() =>
-                                  copy(
-                                    [
-                                      "Motorista",
-                                      "Placa",
-                                      "Observações do Gerador",
-                                    ].includes(k)
-                                      ? display(current.data[k])
-                                      : current.data[k],
-                                  )
-                                }
-                                label={"Copiar " + k}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="original-status">
-                        <span>
-                          Situação original do relatório:{" "}
-                          <strong>{current.data.Situação}</strong>
-                        </span>
-                        <button
-                          className="text-button"
-                          onClick={() =>
-                            copy(
-                              fields
-                                .map(
-                                  (k) =>
-                                    k +
-                                    ": " +
-                                    ([
-                                      "Motorista",
-                                      "Placa",
-                                      "Observações do Gerador",
-                                    ].includes(k)
-                                      ? display(current.data[k])
-                                      : current.data[k]),
-                                )
-                                .join("\n"),
-                            )
-                          }
-                        >
-                          <Copy size={15} />
-                          Copiar resumo completo
-                        </button>
-                        <button
-                          className="text-button"
-                          onClick={() => setAudit(current)}
-                        >
-                          Origens e histórico
-                        </button>
-                      </div>
-                      <div className="manual-note">
-                        <ShieldCheck size={18} />
-                        <span>
-                          Confirme somente após realizar a baixa no portal
-                          oficial. Esta ação registra a sua declaração, sem
-                          confirmação eletrônica do portal.
-                        </span>
-                      </div>
-                      <div className="queue-actions">
-                        <button
-                          className="button secondary"
-                          disabled={busy || visited.length < 2}
-                          onClick={() => {
-                            const prev = visited.at(-2);
-                            const r = doc.records.find((x) => x.id === prev);
-                            if (r) {
-                              setVisited((v) => v.slice(0, -2));
-                              void openRecord(r);
-                            }
-                          }}
-                        >
-                          <ChevronLeft size={17} />
-                          Anterior
-                        </button>
-                        <button
-                          className="button secondary"
-                          disabled={
-                            busy ||
-                            currentBadge === "concluido" ||
-                            (currentBadge === "conferencia" && !owned)
-                          }
-                          onClick={() => void skip()}
-                        >
-                          <SkipForward size={17} />
-                          Pular por enquanto
-                        </button>
-                        {currentBadge === "concluido" ? (
-                          <button
-                            className="button secondary"
-                            disabled={busy}
-                            onClick={() =>
-                              void execute({ type: "reopen", id: current.id })
-                            }
-                          >
-                            <Undo2 size={17} />
-                            Reabrir MTR
-                          </button>
-                        ) : owned ? (
-                          <button
-                            className="button primary"
-                            disabled={busy || current.conflict}
-                            onClick={() => void complete()}
-                          >
-                            <Check size={18} />
-                            Confirmar baixa realizada
-                          </button>
-                        ) : (
-                          <button
-                            className="button primary"
-                            disabled={busy}
-                            onClick={() =>
-                              void execute({ type: "claim", id: current.id })
-                            }
-                          >
-                            Reservar para conferir
-                          </button>
-                        )}
-                      </div>
-                    </>
-                  )}
-                  {lastDone && current && (
-                    <div className="undo-strip">
-                      <Check size={16} />
-                      MTR {lastDone}: conclusão registrada.
-                      <button
-                        disabled={busy}
-                        onClick={async () => {
-                          const s = await execute({
-                            type: "undo",
-                            id: lastDone,
-                          });
-                          if (s) {
-                            setLastDone(null);
-                            say("Conclusão desfeita.");
-                          }
-                        }}
-                      >
-                        <Undo2 size={14} />
-                        Desfazer última conclusão
-                      </button>
-                    </div>
-                  )}
+                  <div className="empty">
+                    <ClipboardCheck size={40} />
+                    <h2>
+                      {done === doc.records.length && done
+                        ? "Tudo conferido por aqui"
+                        : "Retome sua conferência"}
+                    </h2>
+                    <p>
+                      Os dados de cada MTR aparecem em uma janela, com cópia
+                      individual e confirmação da baixa.
+                    </p>
+                    <button
+                      className="button primary"
+                      disabled={busy || !doc.records.length}
+                      onClick={() => void beginConference(doc, null)}
+                    >
+                      Abrir conferência
+                    </button>
+                  </div>
                 </section>
               )}
               {page === "registros" && (
@@ -1595,11 +1435,48 @@ export default function App() {
           </footer>
         </main>
       </div>
-      {toast && (
+      {toast && !conferenceOpen && (
         <div className="toast" role="status">
           <Check size={18} />
           {toast}
         </div>
+      )}
+      {conferenceOpen && (
+        <ConferenceDialog
+          current={current}
+          records={queueRecords}
+          actor={actor}
+          filename={queueBatchName}
+          busy={busy}
+          canPrevious={visited.length > 1}
+          lastDone={
+            lastDone && queueRecords.some((r) => r.id === lastDone)
+              ? lastDone
+              : null
+          }
+          notice={toast}
+          error={error}
+          onCopy={copy}
+          onClose={() => void closeConference()}
+          onComplete={() => void complete()}
+          onSkip={() => void skip()}
+          onPrevious={() => void previousRecord()}
+          onUndo={() => void undoLast()}
+          onResume={() => void beginConference()}
+          onReserve={() => {
+            if (current) void claimAfter(current.id, doc);
+          }}
+          onReopen={async () => {
+            if (current) {
+              const result = await execute({ type: "reopen", id: current.id });
+              if (result) await claimAfter(current.id, result);
+            }
+          }}
+          onReview={() => {
+            if (current) setAudit(current);
+          }}
+          onRetry={retry ? () => void execute(retry) : undefined}
+        />
       )}
       {importOpen && (
         <Modal
@@ -1978,36 +1855,6 @@ export default function App() {
         </Modal>
       )}
     </div>
-  );
-}
-function CopyButton({
-  onClick,
-  label,
-}: {
-  onClick: () => Promise<boolean>;
-  label: string;
-}) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      className="copy-button"
-      aria-label={label}
-      onClick={async () => {
-        if (await onClick()) {
-          setCopied(true);
-          setTimeout(() => setCopied(false), 2200);
-        }
-      }}
-    >
-      {copied ? (
-        <>
-          <Check size={15} />
-          <span>Copiado</span>
-        </>
-      ) : (
-        <Copy size={16} />
-      )}
-    </button>
   );
 }
 function Stat({
