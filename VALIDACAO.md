@@ -32,7 +32,7 @@ Comandos reproduzíveis estão no README e no package.json. O lockfile faz parte
 
 ## Dependências externas e limites
 
-**Relatório operacional:** o CSV real citado no pedido não estava entre os arquivos disponibilizados. Os anexos acessíveis foram o texto do pedido, a logo PNG e o catálogo PDF. Portanto, não foi executado teste com o relatório real. Use a prévia e confira os totais antes de confirmar o primeiro lote real.
+**Relatório operacional:** o CSV real foi recebido após a entrega inicial e validado localmente no build de produção. Foram conferidos o mapeamento das sete colunas em um arquivo com colunas extras, os filtros de situação e gerador, a prévia, a importação, os identificadores, as datas, os valores GRC, as exportações CSV/XLSX, o backup, a confirmação com avanço, o desfazer e a persistência após recarga. Uma conferência independente dos critérios confirmou as contagens. O importador existente processou o arquivo sem necessidade de alteração. Os testes ocorreram em contexto de navegador isolado e descartado ao final; não alteraram a base da prévia do usuário. Nenhum arquivo real, dado pessoal ou contagem operacional foi incluído no repositório. O resumo com as contagens foi entregue somente como arquivo local ao usuário.
 
 **Supabase hospedado:** não foram fornecidos URL, chave pública, workspace nem contas de um ambiente de teste. O SQL foi executado localmente em PostgreSQL WASM, mas login Supabase, publicação Realtime, comportamento com falhas reais de rede e sincronização entre dispositivos físicos dependem da configuração descrita no README. A instrução `alter publication supabase_realtime` é específica do Supabase e foi omitida apenas no teste local PGlite.
 
