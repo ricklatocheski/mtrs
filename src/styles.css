@@ -88,8 +88,9 @@ p {
   inset: 0 auto 0 0;
   display: flex;
   flex-direction: column;
-  background: #fff;
-  border-right: 1px solid var(--line);
+  background: #080808;
+  color: #d6b381;
+  border-right: 1px solid #332b20;
   padding: 32px 20px 0;
   z-index: 20;
 }
@@ -104,7 +105,7 @@ p {
 }
 .brand-divider {
   height: 1px;
-  background: var(--line);
+  background: #332b20;
   margin: 0 8px 25px;
 }
 .product-mark {
@@ -114,13 +115,13 @@ p {
   padding: 0 8px;
 }
 .product-icon {
-  background: #edf2e9;
+  background: #241f17;
   width: 35px;
   height: 38px;
   display: grid;
   place-items: center;
   border-radius: 9px;
-  color: var(--green);
+  color: #d6b381;
 }
 .product-mark strong {
   display: block;
@@ -130,7 +131,7 @@ p {
   display: block;
   font-size: 0.66rem;
   letter-spacing: 1.45px;
-  color: #839081;
+  color: #b99b73;
   margin-top: 5px;
   font-weight: 600;
 }
@@ -138,7 +139,7 @@ p {
   font-size: 0.67rem;
   letter-spacing: 1.2px;
   font-weight: 600;
-  color: #919a91;
+  color: #b99b73;
   margin: 40px 13px 12px;
 }
 .nav-item {
@@ -152,20 +153,22 @@ p {
   text-align: left;
   padding: 13px 14px;
   font-size: 0.92rem;
-  color: #6a756c;
+  color: #d6b381;
   margin-bottom: 5px;
 }
 .nav-item:hover {
-  background: #f6f7f3;
+  background: #1b1812;
 }
 .nav-item.selected {
-  background: #eaf0e7;
-  color: #284d38;
+  background: #2a2217;
+  color: #f1cf9b;
+  box-shadow: inset 3px 0 0 #d6b381;
   font-weight: 650;
 }
 .nav-count {
   margin-left: auto;
-  background: #d6e2d1;
+  background: #3a2e1d;
+  color: #f1cf9b;
   border-radius: 4px;
   padding: 2px 6px;
   font-size: 0.72rem;
@@ -177,19 +180,19 @@ p {
 .local-card {
   display: flex;
   gap: 10px;
-  background: #f7f8f4;
-  border: 1px solid #e8ebdf;
+  background: #15130f;
+  border: 1px solid #332b20;
   border-radius: 8px;
   padding: 14px 11px;
   margin: 18px 0 20px;
-  color: #64705d;
+  color: #d6b381;
 }
 .local-card strong {
   font-size: 0.78rem;
 }
 .local-card p {
   font-size: 0.71rem;
-  color: #8a9384;
+  color: #b99b73;
   margin-top: 4px;
 }
 .operator {
@@ -197,14 +200,14 @@ p {
   align-items: center;
   gap: 9px;
   padding: 20px 0;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid #332b20;
 }
 .avatar {
   width: 33px;
   height: 33px;
   border-radius: 50%;
-  background: #f1ede3;
-  color: #9a7d56;
+  background: #2a2217;
+  color: #d6b381;
   display: grid;
   place-items: center;
   font-size: 0.75rem;
@@ -223,12 +226,18 @@ p {
 }
 .operator small {
   display: block;
-  color: #8f998f;
+  color: #b99b73;
   font-size: 0.69rem;
   margin-top: 4px;
 }
 .workspace {
   margin-left: 246px;
+}
+.sidebar .icon-button {
+  color: #d6b381;
+}
+.sidebar .icon-button:hover {
+  background: #2a2217;
 }
 .topbar {
   height: 75px;
