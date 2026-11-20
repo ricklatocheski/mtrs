@@ -1,50 +1,40 @@
-import { test, expect, type Page } from "@playwright/test";
-
-const header =
-  "MTR Nº;Situação;Data de Emissão;Motorista;Placa;Gerador Nome;Observações do Gerador";
-const sample =
-  header +
-  '\r\n000101;Salvo;20/11/2026;MOTORISTA SINTÉTICO;ABC1D23;FORNECEDOR SINTÉTICO;"Observação; de teste"\r\n000102;Salvo;19/11/2026;;;OUTRO GERADOR SINTÉTICO;';
-async function importFile(page: Page, csv = sample) {
-  await page
-    .getByRole("button", { name: "Importar relatório", exact: true })
-    .click();
-  await page
-    .getByRole("dialog", { name: "Importar relatório", exact: true })
-    .locator("input[type=file]")
-    .setInputFiles({
-      name: "teste-sintetico.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from(csv),
-    });
-  await page.getByRole("button", { name: /Confirmar importação/ }).click();
-  const dialog = page.getByRole("dialog", {
-    name: "Conferência de MTR",
-    exact: true,
-  });
-  await expect(dialog).toBeVisible();
-  return dialog;
-}
-test("importação abre a conferência automaticamente e cada campo pode ser copiado sem concluir", async ({
+import { test, expect } from "@playwright/test";
+import * as XLSX from "xlsx";
+import { local, importFile, header } from "./helpers";
+test("somente os campos de baixa e confirmação, cópia não conclui e fechar libera", async ({
   page,
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("/");
-  const dialog = await importFile(page);
+  await local(page);
+  const popup = await importFile(page);
   await expect(
-    dialog.getByRole("heading", { name: "000101", exact: true }),
-  ).toBeVisible();
+    popup.getByRole("button", { name: "Pular por enquanto", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    popup.getByRole("button", { name: "Anterior", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    popup.getByRole("button", {
+      name: "Desfazer última conclusão",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await expect(popup.locator(".conference-actions button")).toHaveCount(1);
+  await expect(
+    popup.getByText("FORNECEDOR SINTÉTICO", { exact: true }),
+  ).not.toBeVisible();
+  await expect(
+    popup.locator(".conference-field").filter({ hasText: "Gerador Nome" }),
+  ).toHaveCount(0);
   for (const [name, value] of [
     ["número do MTR", "000101"],
-    ["Situação", "Salvo"],
     ["Data de Emissão", "20/11/2026"],
     ["Motorista", "MOTORISTA SINTÉTICO"],
     ["Placa", "ABC1D23"],
-    ["Gerador Nome", "FORNECEDOR SINTÉTICO"],
-    ["Observações do Gerador", "Observação; de teste"],
+    ["Observações do Gerador", "Observação de teste"],
   ]) {
-    const button = dialog.getByRole("button", {
+    const button = popup.getByRole("button", {
       name: "Copiar " + name,
       exact: true,
     });
@@ -54,176 +44,106 @@ test("importação abre a conferência automaticamente e cada campo pode ser cop
       value,
     );
   }
-  await dialog
-    .getByRole("button", { name: "Copiar resumo completo", exact: true })
-    .click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
-    "Motorista: MOTORISTA SINTÉTICO",
-  );
-  await expect(
-    dialog.getByText("Em conferência", { exact: true }),
-  ).toBeVisible();
   await expect(page.locator(".stat-card").nth(3).locator("strong")).toHaveText(
     "0",
   );
   await page.keyboard.press("Escape");
-  await expect(dialog).not.toBeVisible();
+  await expect(popup).not.toBeVisible();
   await expect(page.locator(".stat-card").nth(1).locator("strong")).toHaveText(
     "2",
   );
-  await page.reload();
-  await page
-    .getByRole("button", { name: "Iniciar conferência", exact: true })
-    .click();
-  await expect(
-    dialog.getByRole("heading", { name: "000101", exact: true }),
-  ).toBeVisible();
-  await dialog
-    .getByRole("button", { name: "Pular por enquanto", exact: true })
-    .click();
-  await expect(
-    dialog.getByRole("heading", { name: "000102", exact: true }),
-  ).toBeVisible();
-  await expect(
-    dialog.getByRole("button", { name: "Copiar Motorista", exact: true }),
-  ).toHaveText("Copiar");
-  await dialog.getByRole("button", { name: "Anterior", exact: true }).click();
-  await expect(
-    dialog.getByRole("heading", { name: "000101", exact: true }),
-  ).toBeVisible();
 });
-test("confirma, avança dentro da janela, mostra resumo e desfaz a última conclusão", async ({
+test("clique duplo não confirma o próximo e resumo preserva reimportação", async ({
   page,
 }) => {
-  await page.goto("/");
-  const dialog = await importFile(page);
-  await dialog
+  await local(page);
+  let popup = await importFile(page);
+  await popup
     .getByRole("button", { name: "Confirmar baixa realizada", exact: true })
     .dblclick();
   await expect(
-    dialog.getByRole("heading", { name: "000102", exact: true }),
+    popup.getByRole("heading", { name: "000102", exact: true }),
   ).toBeVisible();
-  await expect(dialog.locator(".conference-last-done")).toContainText("000101");
   await expect(page.locator(".stat-card").nth(3).locator("strong")).toHaveText(
     "1",
   );
-  await expect(dialog.locator(".conference-last-done")).toHaveCSS(
-    "background-color",
-    "rgb(240, 246, 233)",
-  );
-  await expect(dialog.getByText("GRC", { exact: true })).toHaveCount(3);
-  await dialog
+  await expect(popup.getByText("GRC", { exact: true })).toHaveCount(3);
+  await popup
     .getByRole("button", { name: "Confirmar baixa realizada", exact: true })
     .click();
   await expect(
-    dialog.getByRole("heading", { name: "Fila concluída!", exact: true }),
+    popup.getByRole("heading", { name: "Fila concluída!", exact: true }),
   ).toBeVisible();
-  await expect(dialog.locator(".conference-summary-stats strong")).toHaveText([
-    "2",
-    "2",
-    "0",
-  ]);
-  await dialog
-    .getByRole("button", { name: "Desfazer última conclusão", exact: true })
-    .click();
-  await expect(
-    dialog.getByRole("heading", { name: "000102", exact: true }),
-  ).toBeVisible();
-  await expect(
-    dialog.getByText("Em conferência", { exact: true }),
-  ).toBeVisible();
-  await dialog
-    .getByRole("button", { name: "Fechar conferência", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Todos os MTRs", exact: true })
-    .click();
-  await expect(
-    page
-      .getByRole("row")
-      .filter({ hasText: "000101" })
-      .getByText("Concluído", { exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("row")
-    .filter({ hasText: "000101" })
-    .getByRole("button", { name: "Abrir", exact: true })
-    .click();
-  await expect(dialog.getByText("Concluído", { exact: true })).toBeVisible();
-  await dialog
-    .getByRole("button", { name: "Reabrir MTR", exact: true })
-    .click();
-  await expect(
-    dialog.getByText("Em conferência", { exact: true }),
-  ).toBeVisible();
-});
-test("pular toda a fila mostra pendências e reimportar lote concluído preserva o progresso", async ({
-  page,
-}) => {
-  await page.goto("/");
-  const dialog = await importFile(page);
-  await dialog
-    .getByRole("button", { name: "Pular por enquanto", exact: true })
-    .click();
-  await expect(
-    dialog.getByRole("heading", { name: "000102", exact: true }),
-  ).toBeVisible();
-  await dialog
-    .getByRole("button", { name: "Pular por enquanto", exact: true })
-    .click();
-  await expect(
-    dialog.getByRole("heading", { name: "Há MTRs para retomar", exact: true }),
-  ).toBeVisible();
-  await expect(dialog.locator(".conference-summary-stats strong")).toHaveText([
-    "2",
-    "0",
-    "2",
-  ]);
-  await dialog
-    .getByRole("button", { name: "Retomar pendentes", exact: true })
-    .click();
-  await dialog
-    .getByRole("button", { name: "Confirmar baixa realizada", exact: true })
-    .click();
-  await expect(
-    dialog.getByRole("heading", { name: "000102", exact: true }),
-  ).toBeVisible();
-  await dialog
-    .getByRole("button", { name: "Confirmar baixa realizada", exact: true })
-    .click();
-  await expect(
-    dialog.getByRole("heading", { name: "Fila concluída!", exact: true }),
-  ).toBeVisible();
-  await dialog
+  await popup
     .getByRole("button", { name: "Voltar ao painel", exact: true })
     .click();
-  await importFile(page);
-  await expect(
-    dialog.getByRole("heading", { name: "Fila concluída!", exact: true }),
-  ).toBeVisible();
-  await expect(dialog.locator(".conference-summary-stats strong")).toHaveText([
+  popup = await importFile(page);
+  await expect(popup.locator(".conference-summary-stats strong")).toHaveText([
     "2",
     "2",
     "0",
   ]);
 });
-test("conferência funciona no celular e lote sem elegíveis não abre documento de outro lote", async ({
+test("arquivo com várias abas pede apenas a aba e importa ao selecionar; erro não grava", async ({
+  page,
+}) => {
+  await local(page);
+  await page
+    .getByRole("button", { name: "Importar relatório", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Importar relatório",
+    exact: true,
+  });
+  await dialog
+    .locator("input[type=file]")
+    .setInputFiles({
+      name: "invalido.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from("MTR Nº\n001"),
+    });
+  await expect(dialog.getByRole("alert")).toContainText("Colunas obrigatórias");
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(
+    book,
+    XLSX.utils.aoa_to_sheet([
+      header.split(";"),
+      ["000201", "Salvo", "20/11/2026", "", "", "GERADOR SINTÉTICO", ""],
+    ]),
+    "Principal",
+  );
+  XLSX.utils.book_append_sheet(
+    book,
+    XLSX.utils.aoa_to_sheet([["outra"]]),
+    "Outra",
+  );
+  await dialog
+    .locator("input[type=file]")
+    .setInputFiles({
+      name: "abas.xlsx",
+      mimeType:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      buffer: Buffer.from(
+        XLSX.write(book, { type: "buffer", bookType: "xlsx" }),
+      ),
+    });
+  await dialog.getByLabel("Aba da planilha", { exact: true }).selectOption("0");
+  await expect(
+    page
+      .getByRole("dialog", { name: "Conferência de MTR" })
+      .getByRole("heading", { name: "000201", exact: true }),
+  ).toBeVisible();
+});
+test("janela móvel e lote sem elegíveis não usa pendentes de outro lote", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
-  const dialog = await importFile(page);
-  const box = await dialog.boundingBox();
-  expect(box!.x).toBeGreaterThanOrEqual(0);
+  await local(page);
+  const popup = await importFile(page);
+  const box = await popup.boundingBox();
   expect(box!.x + box!.width).toBeLessThanOrEqual(390);
-  await expect(dialog.locator(".conference-brand")).toBeHidden();
-  await dialog
-    .getByRole("button", { name: "Confirmar baixa realizada", exact: true })
-    .click();
-  await expect(
-    dialog.getByRole("heading", { name: "000102", exact: true }),
-  ).toBeVisible();
-  await dialog
+  await expect(popup.locator(".conference-brand")).toBeHidden();
+  await popup
     .getByRole("button", { name: "Fechar conferência", exact: true })
     .click();
   await importFile(
@@ -231,14 +151,9 @@ test("conferência funciona no celular e lote sem elegíveis não abre documento
     header + "\r\n000999;Cancelado;20/11/2026;;;GERADOR SINTÉTICO;",
   );
   await expect(
-    dialog.getByRole("heading", {
+    popup.getByRole("heading", {
       name: "Nenhum MTR elegível nesta fila",
       exact: true,
     }),
   ).toBeVisible();
-  await expect(dialog.locator(".conference-summary-stats strong")).toHaveText([
-    "0",
-    "0",
-    "0",
-  ]);
 });

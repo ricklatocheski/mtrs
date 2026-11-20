@@ -635,3 +635,61 @@
   align-items: center;
   gap: 8px;
 }
+
+.conference-field.wide {
+  grid-column: 1/-1;
+}
+.conference-actions .conference-confirm {
+  min-width: 240px;
+}
+.conference-copy-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 15px 0;
+}
+.conference-copy-row button {
+  border: 0;
+  background: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #61784f;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 0;
+}
+.conference-extra {
+  font-size: 10px;
+  color: #8a967d;
+  text-align: right;
+  max-width: 300px;
+}
+.conference-extra p {
+  font-size: 11px;
+  line-height: 1.8;
+  margin-top: 7px;
+}
+.conference-already-complete {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #5c7b47;
+  font-size: 13px;
+}
+.import-sheet-label {
+  margin-top: 20px;
+}
+.import-sheet-label select {
+  max-width: 100%;
+}
+.spin {
+  animation: mtr-spin 1s linear infinite;
+}
+@keyframes mtr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,53 +1,25 @@
-# Validação da entrega — 20/11/2026
+# Validação — 20/11/2026
 
-O repositório `ricklatocheski/mtrs` foi consultado e clonado antes da implementação. Estava vazio. A logo original foi copiada sem alterações de proporção ou transparência. O catálogo PDF foi consultado como referência de marca e materiais; não integra o repositório nem o pacote.
+Esta revisão teve **37 testes de regras, persistência, autenticação e SQL e 9 cenários únicos de navegador aprovados**, incluindo execuções focadas com Supabase real. Compilação TypeScript e build Vite de produção verificados na entrega.
 
-Resultado: **27 testes automatizados de regras/persistência/SQL e 6 cenários de navegador aprovados.** A cópia dos sete campos foi também revalidada em execução focada após o ajuste da situação original. **Build de produção concluído.**
+## Cobertura
 
-## Executado com dados sintéticos
+- CSV: separadores, acentos, múltiplas codificações, aspas, campos multilinha, cabeçalhos e extras; XLS/XLSX com abas, datas e zeros à esquerda.
+- Filtros de situação e gerador, classificação exclusiva, contagens, valores GRC, identificadores e origens divergentes.
+- Reservas, expiração, liberação, confirmação, versão concorrente, auditoria, reimportação, backup e neutralização de fórmulas na exportação.
+- IndexedDB concorrente e SQL PostgreSQL WASM/PGlite: RLS, RPC atômico, identidade, proibição de escrita direta e de chamada do RPC interno.
+- Importação automática sem confirmação, seleção de aba, erro de arquivo inválido, avanço e clique duplo protegido.
+- Cópia dos cinco campos principais comparada ao clipboard. Gerador e situação recolhidos. Somente Confirmar baixa realizada conclui; fechar libera reserva.
+- Persistência, atualização em outra aba, exportação CSV/XLSX e backup JSON; layout móvel e navegação.
+- Login inválido, painel protegido, administrador real cadastra operador, operador entra sem permissão administrativa, administrador bloqueia e novo acesso é recusado.
+- Avanço de 24 horas retorna ao login. SQL valida sessão original, sessão revogada, bloqueio e proteção do último administrador.
 
-- Leitura CSV com separador `;`, aspas duplicadas, acentos, campos vazios, observações multilinha e colunas extras fora de ordem.
-- Decodificação UTF-8, Windows-1252 e UTF-16 com BOM.
-- Leitura de arquivos XLS e XLSX gerados nos testes, com duas abas, datas seriais e números com zeros em formato Excel.
-- Cabeçalhos normalizados, colunas obrigatórias ausentes e datas inválidas.
-- Inclusão somente de Salvo; exclusão de MTR recebido e Cancelado.
-- Exclusão exclusivamente pelo Gerador Nome; Destinador Nome não interfere. Outras empresas Guararapes permanecem elegíveis.
-- Exibição GRC sem alterar vazios originais.
-- Preservação de identificadores em texto, datas brasileiras, consolidação e divergências.
-- Equação de contagens e classificação exclusiva das linhas.
-- Reserva, expiração, liberação, conclusão, impedimento de dupla conclusão, desfazer e reabrir.
-- Reimportação e mesclagem de backup preservando conclusões existentes.
-- Validação de backup e neutralização de fórmulas nas exportações.
-- Escritas concorrentes no IndexedDB de teste: apenas um operador obtém a reserva.
-- SQL executado em PostgreSQL WASM/PGlite: tabelas, funções PL/pgSQL, associação de operadores, RLS, proibição de escrita direta, reserva por operador, CAS por versão, dupla conclusão, auditoria com identidade do servidor e desfazer.
-- RPC rejeita versão nula, ação nula, não membros e versões vencidas.
-- Chromium real/Playwright: importação pela interface, contadores, cópia para clipboard, confirmação e avanço, pular, desfazer, reabrir, persistência após recarga e atualização em outra aba.
-- Downloads CSV e XLSX: arquivos abertos nos testes para verificar conteúdo e número com zeros à esquerda.
-- Download JSON e restauração por mesclagem pela interface.
-- Layout móvel em 390 × 844, ausência de transbordamento da página e navegação direta às rotas.
-- Inspeção visual do painel no computador.
-- Compilação TypeScript e build Vite de produção.
-- Confirmação da importação abre automaticamente uma janela de conferência no primeiro pendente do lote, sem concluir nenhum MTR.
-- Número, situação original, data, motorista, placa, gerador e observações copiados individualmente, com comparação do conteúdo real do clipboard.
-- Avanço para o próximo MTR dentro da mesma janela, confirmação verde do anterior e resumo ao terminar a passagem pela fila.
-- Clique duplo de confirmação não conclui também o próximo documento; o foco acompanha a troca para o botão de copiar o novo MTR.
-- Pular toda a fila exibe pendências e permite retomada; fechar ou pressionar Escape libera a reserva sem concluir.
-- Desfazer pelo resumo final reabre o documento na janela; consulta e reabertura de concluídos pela listagem.
-- Reimportar um lote já concluído preserva suas conclusões e mostra o resumo. Um lote sem elegíveis não seleciona pendentes de outro lote.
-- Janela de conferência testada em viewport móvel, com ações acessíveis e faixa decorativa oculta.
+## Ambiente real e limites
 
-Comandos reproduzíveis estão no README e no package.json. O lockfile faz parte da entrega.
+Projeto Guararapes-MTR ativo em rickatocheski; migrations aplicadas e função de cadastro publicada. Login real confirmou prazo de 24 horas. Leitura anônima e token revogado foram recusados. Nenhum relatório real foi enviado ao Supabase. Importações de navegador usam modo local isolado. Uma conta sintética de QA permanece bloqueada após a validação de cadastro.
 
-## Dependências externas e limites
+O relatório operacional fornecido foi validado localmente em revisões anteriores, inclusive filtros, mapeamento, exportações e acompanhamento. Nenhum relatório, senha ou dado pessoal entrou no Git. Imagens de demonstração usam dados sintéticos.
 
-**Relatório operacional:** o CSV real foi recebido após a entrega inicial e validado localmente no build de produção. Foram conferidos o mapeamento das sete colunas em um arquivo com colunas extras, os filtros de situação e gerador, a prévia, a importação, os identificadores, as datas, os valores GRC, as exportações CSV/XLSX, o backup, a confirmação com avanço, o desfazer e a persistência após recarga. Uma conferência independente dos critérios confirmou as contagens. O importador existente processou o arquivo sem necessidade de alteração. Os testes ocorreram em contexto de navegador isolado e descartado ao final; não alteraram a base da prévia do usuário. Nenhum arquivo real, dado pessoal ou contagem operacional foi incluído no repositório. O resumo com as contagens foi entregue somente como arquivo local ao usuário.
+Advisores Supabase revisados: o aviso de [RLS sem policy](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) corresponde ao bootstrap privado, intencionalmente inacessível a clientes. Os sete avisos de [SECURITY DEFINER](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) correspondem aos RPCs autorizados: validam sessão e vínculo e, quando necessário, administrador; o RPC interno não tem execução pública. A [proteção adicional contra senhas vazadas](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) está desativada no provedor. O cadastro exige senha de 10 a 128 caracteres. Não houve auditoria independente.
 
-Na revisão da janela de conferência, o relatório real foi novamente processado no build de produção: abertura automática no primeiro elegível do lote, cópia dos sete campos comparada ao arquivo de origem, avanço, desfazer e liberação da reserva ao fechar foram aprovados. O contexto de teste foi descartado. As imagens de prévia usam exclusivamente dados sintéticos.
-
-**Supabase hospedado:** não foram fornecidos URL, chave pública, workspace nem contas de um ambiente de teste. O SQL foi executado localmente em PostgreSQL WASM, mas login Supabase, publicação Realtime, comportamento com falhas reais de rede e sincronização entre dispositivos físicos dependem da configuração descrita no README. A instrução `alter publication supabase_realtime` é específica do Supabase e foi omitida apenas no teste local PGlite.
-
-**Netlify:** configuração e build estático incluídos. Não foi realizado deploy na conta Netlify. O fallback de rotas está definido tanto no netlify.toml quanto em dist/_redirects.
-
-**Capacidade:** limite de importação 30 MB, backup 50 MB e documento compartilhado 40 MB. A base compartilhada usa um snapshot JSONB com versão por workspace, apropriado para equipes pequenas. Não foi realizado benchmark de carga ou auditoria de segurança independente. Todos os membros de um workspace podem operar todos os seus MTRs.
-
-**Escopo:** o sistema não tem integração eletrônica com o portal MTR. Uma conclusão indica apenas declaração do operador. Nunca foram enviados relatórios operacionais ao GitHub.
+Não houve deploy na conta Netlify, benchmark de carga ou teste entre dispositivos físicos. O ZIP inclui dist e configuração de publicação. Limites: importação 30 MB, backup 50 MB, snapshot compartilhado 40 MB. O sistema não integra o portal MTR: conclusão é declaração manual do operador.

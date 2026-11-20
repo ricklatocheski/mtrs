@@ -1,4 +1,5 @@
 import { openDB } from "idb";
+import { BACKEND } from "./backend";
 import { createClient } from "@supabase/supabase-js";
 import { empty, reduce, type Command, type Snapshot } from "./domain";
 const db = openDB("guararapes-mtr-v1", 1, {
@@ -50,9 +51,13 @@ export function localSubscribe(cb: () => void) {
   channel?.addEventListener("message", fn);
   return () => channel?.removeEventListener("message", fn);
 }
-const url = import.meta.env.VITE_SUPABASE_URL;
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-export const workspace = import.meta.env.VITE_SUPABASE_WORKSPACE_ID;
+const url =
+  import.meta.env.VITE_LOCAL_ONLY === "true"
+    ? ""
+    : import.meta.env.VITE_SUPABASE_URL || BACKEND.url;
+const key = import.meta.env.VITE_SUPABASE_ANON_KEY || BACKEND.key;
+export const workspace =
+  import.meta.env.VITE_SUPABASE_WORKSPACE_ID || BACKEND.workspace;
 export const supabase = url && key && workspace ? createClient(url, key) : null;
 export type RemoteSnapshot = { version: number; doc: Snapshot };
 export async function remoteLoad(): Promise<RemoteSnapshot> {

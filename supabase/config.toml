@@ -1,0 +1,2 @@
+[functions.mtr-users]
+verify_jwt = false

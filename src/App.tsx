@@ -26,6 +26,7 @@ import {
   Database,
   ShieldCheck,
   ArrowUpRight,
+  UsersRound,
 } from "lucide-react";
 import {
   empty,
@@ -53,7 +54,10 @@ import {
 } from "./storage";
 import { exportData, exportBackup } from "./exporter";
 import ConferenceDialog from "./ConferenceDialog";
-type Page = "painel" | "fila" | "registros" | "historico" | "config";
+import { useAccess } from "./AuthGate";
+import UserAccounts from "./UserAccounts";
+type Page =
+  "painel" | "fila" | "registros" | "historico" | "config" | "cadastros";
 const labels: Record<string, string> = {
   pendente: "Pendente",
   conferencia: "Em conferência",
@@ -66,6 +70,7 @@ const nav = [
   ["fila", "Conferência", ClipboardCheck],
   ["registros", "Todos os MTRs", ListFilter],
   ["historico", "Histórico", History],
+  ["cadastros", "Cadastros", UsersRound],
   ["config", "Configurações", Settings],
 ] as const;
 function Badge({ r }: { r: MTR }) {
@@ -88,6 +93,7 @@ function Modal({
   wide = false,
   branded = false,
   reviewReady = false,
+  locked = false,
 }: {
   title: string;
   children: ReactNode;
@@ -95,6 +101,7 @@ function Modal({
   wide?: boolean;
   branded?: boolean;
   reviewReady?: boolean;
+  locked?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -107,7 +114,10 @@ function Modal({
       ref={ref}
       aria-label={title}
       className={(wide ? "modal wide" : "modal") + (branded ? " branded" : "")}
-      onCancel={onClose}
+      onCancel={(event) => {
+        event.preventDefault();
+        if (!locked) onClose();
+      }}
     >
       {branded && (
         <aside className="import-brand-panel">
@@ -160,7 +170,12 @@ function Modal({
         )}
         <div className="modal-head">
           <h2>{title}</h2>
-          <button className="icon-button" onClick={onClose} aria-label="Fechar">
+          <button
+            className="icon-button"
+            disabled={locked}
+            onClick={onClose}
+            aria-label="Fechar"
+          >
             <X />
           </button>
         </div>
@@ -170,20 +185,20 @@ function Modal({
   );
 }
 export default function App() {
+  const { member, signOut } = useAccess();
   const [doc, setDoc] = useState<Snapshot>(empty);
   const [loaded, setLoaded] = useState(false);
   const [page, setPage] = useState<Page>(
     () => (location.pathname.slice(1) as Page) || "painel",
   );
-  const [mode, setMode] = useState<"local" | "shared">(() =>
-    localStorage.getItem("mtr-mode") === "shared" && supabase
-      ? "shared"
-      : "local",
+  const [mode, setMode] = useState<"local" | "shared">(
+    member ? "shared" : "local",
   );
   const [actor, setActor] = useState(tabActor);
   const [user, setUser] = useState<string | null>(null);
   const [remote, setRemote] = useState<RemoteSnapshot | null>(null);
   const remoteVersion = useRef(-1);
+  const remoteCurrent = useRef<RemoteSnapshot | null>(null);
   const [connection, setConnection] = useState("");
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
@@ -199,10 +214,8 @@ export default function App() {
   const [tables, setTables] = useState<Table[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [sheet, setSheet] = useState(0);
-  const [encoding, setEncoding] = useState("auto");
-  const [preview, setPreview] = useState<ReturnType<typeof prepare> | null>(
-    null,
-  );
+  const [importProcessing, setImportProcessing] = useState(false);
+  const importLock = useRef(false);
   const [importError, setImportError] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
   const [exportOpen, setExportOpen] = useState(false);
@@ -262,6 +275,7 @@ export default function App() {
   function acceptRemote(s: RemoteSnapshot) {
     if (s.version < remoteVersion.current) return;
     remoteVersion.current = s.version;
+    remoteCurrent.current = s;
     setRemote(s);
     setDoc(s.doc);
   }
@@ -286,6 +300,7 @@ export default function App() {
     setQueueIds(null);
     setDoc(empty());
     setRemote(null);
+    remoteCurrent.current = null;
     remoteVersion.current = -1;
     setLoaded(false);
     setError("");
@@ -294,32 +309,13 @@ export default function App() {
       void refresh();
       return localSubscribe(() => void refresh());
     }
-    if (!supabase) return;
-    let dispose: undefined | (() => void);
-    let live = true;
-    const start = async () => {
-      const { data } = await supabase!.auth.getSession();
-      if (!live) return;
-      setUser(data.session?.user.email ?? null);
-      if (data.session) {
-        setActor(data.session.user.id);
-        await refresh();
-      } else setLoaded(true);
-    };
-    void start();
-    const { data: auth } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user.email ?? null);
-        if (session) {
-          setActor(session.user.id);
-          setTimeout(() => void refresh(), 0);
-        } else {
-          setDoc(empty());
-          setRemote(null);
-          remoteVersion.current = -1;
-        }
-      },
-    );
+    if (!supabase || !member) {
+      setLoaded(true);
+      return;
+    }
+    setUser(member.username);
+    setActor(member.userId);
+    void refresh();
     const channel = supabase
       .channel("mtr-" + workspace)
       .on(
@@ -333,24 +329,18 @@ export default function App() {
         () => void refresh(),
       )
       .subscribe((status) => {
-        if (live)
-          setConnection(
-            status === "SUBSCRIBED"
-              ? "Sincronização em tempo real ativa"
-              : status === "CHANNEL_ERROR" || status === "TIMED_OUT"
-                ? "Conexão em tempo real indisponível. Atualize para tentar novamente."
-                : "Conectando ao tempo real…",
-          );
+        setConnection(
+          status === "SUBSCRIBED"
+            ? "Sincronização em tempo real ativa"
+            : status === "CHANNEL_ERROR" || status === "TIMED_OUT"
+              ? "Conexão indisponível. Tente atualizar."
+              : "Conectando…",
+        );
       });
-    dispose = () => {
-      void supabase!.removeChannel(channel);
-      auth.subscription.unsubscribe();
-    };
     return () => {
-      live = false;
-      dispose?.();
+      void supabase!.removeChannel(channel);
     };
-  }, [mode]);
+  }, [mode, member?.userId]);
   useEffect(() => {
     const timer = setInterval(() => setDoc((s) => ({ ...s })), 15000);
     const fn = () => {
@@ -372,9 +362,10 @@ export default function App() {
         next = await localApply(cmd, actor);
         setDoc(next);
       } else {
-        if (!remote)
+        const confirmed = remoteCurrent.current ?? remote;
+        if (!confirmed)
           throw Error("Entre na conta e carregue os dados compartilhados.");
-        const s = await remoteApply(cmd, remote, actor);
+        const s = await remoteApply(cmd, confirmed, actor);
         acceptRemote(s);
         next = s.doc;
       }
@@ -462,6 +453,7 @@ export default function App() {
         );
         acceptRemote(result);
       }
+      return true;
     } catch (e) {
       setError((e as Error).message);
       if (mode === "local") setDoc(await localLoad());
@@ -472,12 +464,16 @@ export default function App() {
           /* keep confirmed state */
         }
       }
+      return false;
     } finally {
       setBusy(false);
     }
   }
   async function complete() {
-    if (!current) return;
+    if (!current || current.state === "concluido") return;
+    if (effectiveState(current) !== "conferencia" || current.owner !== actor) {
+      if (!(await claimAfter(current.id, doc))) return;
+    }
     const s = await execute({ type: "complete", id: current.id });
     if (s) {
       setLastDone(current.id);
@@ -560,47 +556,60 @@ export default function App() {
       return false;
     }
   }
-  async function loadFile(f: File, enc = encoding) {
+  async function saveImport(prepared: ReturnType<typeof prepare>) {
+    const saved = await execute({ type: "import", ...prepared });
+    if (!saved) {
+      setImportError(
+        "Não foi possível salvar o lote. Confira a conexão e tente novamente.",
+      );
+      return;
+    }
+    setImportOpen(false);
+    setTables([]);
+    setFile(null);
+    say(prepared.records.length + " MTRs reconhecidos.");
+    go("painel");
+    await beginConference(
+      saved,
+      prepared.records.map((r) => r.id),
+    );
+  }
+  async function loadFile(f: File) {
+    if (importLock.current) return;
+    importLock.current = true;
+    setImportProcessing(true);
     setFile(f);
-    setPreview(null);
+    setTables([]);
     setImportError("");
     try {
-      const t = await readTables(f, enc);
-      setTables(t);
-      setSheet(0);
-      if (t.length === 1) setPreview(prepare(t[0], f.name));
-    } catch (e) {
-      setImportError((e as Error).message);
-      setTables([]);
+      const list = await readTables(f);
+      setSheet(-1);
+      if (list.length === 1) await saveImport(prepare(list[0], f.name));
+      else setTables(list);
+    } catch (error) {
+      setImportError((error as Error).message);
+    } finally {
+      setImportProcessing(false);
+      importLock.current = false;
     }
   }
-  const chooseSheet = (index: number) => {
+  async function chooseSheet(index: number) {
+    if (importLock.current || !file) return;
+    importLock.current = true;
+    setImportProcessing(true);
     setSheet(index);
+    setImportError("");
     try {
-      setPreview(prepare(tables[index], file!.name));
-      setImportError("");
-    } catch (e) {
-      setPreview(null);
-      setImportError((e as Error).message);
-    }
-  };
-  async function importConfirm() {
-    if (!preview) return;
-    const s = await execute({ type: "import", ...preview });
-    if (s) {
-      setImportOpen(false);
-      setPreview(null);
-      setTables([]);
-      setFile(null);
-      say("Lote importado. Histórico anterior preservado.");
-      go("painel");
-      await beginConference(
-        s,
-        preview.records.map((r) => r.id),
-      );
+      await saveImport(prepare(tables[index], file.name));
+    } catch (error) {
+      setImportError((error as Error).message);
+    } finally {
+      setImportProcessing(false);
+      importLock.current = false;
     }
   }
   function changeMode(value: "local" | "shared") {
+    if (member || value === "shared") return;
     setMode(value);
     localStorage.setItem("mtr-mode", value);
     setSelected(null);
@@ -640,7 +649,9 @@ export default function App() {
           ? "Consulte, filtre e retome seus documentos."
           : page === "historico"
             ? "Rastreabilidade de cada ação realizada."
-            : "Armazenamento, acesso e segurança dos dados.";
+            : page === "cadastros"
+              ? "Gerencie os acessos ao seu ambiente."
+              : "Armazenamento, acesso e segurança dos dados.";
   const queueRecords = doc.records.filter(
     (r) => !queueIds || queueIds.includes(r.id),
   );
@@ -687,6 +698,15 @@ export default function App() {
             <strong>Controle de MTR</strong>
           </div>
           <div className="topbar-right">
+            {member && (
+              <div className="session-controls">
+                <span>{member.username}</span>
+                <button onClick={() => void signOut()}>
+                  <LogOut size={14} />
+                  Sair
+                </button>
+              </div>
+            )}
             <span className="environment">
               <span className="status-dot" />
               {mode === "local"
@@ -751,6 +771,12 @@ export default function App() {
               <button onClick={() => void refresh()}>Atualizar</button>
             </div>
           )}
+          {mode === "local" && (
+            <div className="local-access-note">
+              Modo local: os dados ficam somente neste navegador. O acesso
+              compartilhado é feito pela tela de login.
+            </div>
+          )}
           {!loaded ? (
             <div className="empty panel">Carregando dados salvos…</div>
           ) : mode === "shared" && !user ? (
@@ -794,6 +820,7 @@ export default function App() {
               </form>
               <button
                 className="text-button"
+                disabled={!!member}
                 onClick={() => changeMode("local")}
               >
                 Usar modo local
@@ -1308,6 +1335,7 @@ export default function App() {
                   </div>
                 </section>
               )}
+              {page === "cadastros" && <UserAccounts />}
               {page === "config" && (
                 <div className="settings-grid">
                   <section className="panel settings-panel">
@@ -1329,7 +1357,7 @@ export default function App() {
                         Modo local{mode === "local" && <Check size={16} />}
                       </button>
                       <button
-                        disabled={!supabase}
+                        disabled={!member}
                         className={
                           "mode-option " + (mode === "shared" ? "chosen" : "")
                         }
@@ -1347,7 +1375,7 @@ export default function App() {
                     {user && (
                       <button
                         className="button secondary"
-                        onClick={() => void supabase?.auth.signOut()}
+                        onClick={() => void signOut()}
                       >
                         <LogOut size={17} />
                         Sair da conta
@@ -1481,33 +1509,41 @@ export default function App() {
       {importOpen && (
         <Modal
           title="Importar relatório"
-          wide
-          branded
-          reviewReady={!!preview}
-          onClose={() => setImportOpen(false)}
+          locked={importProcessing}
+          onClose={() => {
+            if (!importProcessing) setImportOpen(false);
+          }}
         >
           <p className="modal-description">
-            Os arquivos são lidos neste navegador. Revise a seleção antes de
-            importar.
+            Selecione ou arraste seu arquivo. A conferência começa
+            automaticamente.
           </p>
           <div
             className="drop-zone"
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();
-              const f = e.dataTransfer.files[0];
-              if (f) void loadFile(f);
+              if (e.dataTransfer.files[0])
+                void loadFile(e.dataTransfer.files[0]);
             }}
+            aria-busy={importProcessing}
           >
             <div className="empty-icon">
-              <Upload size={25} />
+              {importProcessing ? (
+                <RefreshCw size={25} className="spin" />
+              ) : (
+                <Upload size={25} />
+              )}
             </div>
             <strong>
-              {file ? file.name : "Arraste seu relatório até aqui"}
+              {importProcessing
+                ? "Importando relatório…"
+                : (file?.name ?? "Arraste seu relatório até aqui")}
             </strong>
             <p>XLSX, XLS ou CSV • até 30 MB</p>
             <button
               className="button secondary"
+              disabled={importProcessing}
               onClick={() => fileInput.current?.click()}
             >
               Selecionar arquivo
@@ -1517,145 +1553,38 @@ export default function App() {
               ref={fileInput}
               type="file"
               accept=".csv,.xlsx,.xls"
+              disabled={importProcessing}
               onChange={(e) => {
                 if (e.target.files?.[0]) void loadFile(e.target.files[0]);
                 e.target.value = "";
               }}
             />
           </div>
-          <div className="import-selects">
-            {file && /\.csv$/i.test(file.name) && (
-              <label>
-                Codificação do CSV
-                <select
-                  value={encoding}
-                  onChange={(e) => {
-                    setEncoding(e.target.value);
-                    void loadFile(file, e.target.value);
-                  }}
-                >
-                  <option value="auto">
-                    Automática (UTF-8 / Windows-1252)
+          {tables.length > 1 && (
+            <label className="import-sheet-label">
+              Qual aba deseja importar?
+              <select
+                aria-label="Aba da planilha"
+                value={sheet < 0 ? "" : sheet}
+                disabled={importProcessing}
+                onChange={(e) => void chooseSheet(+e.target.value)}
+              >
+                <option value="" disabled>
+                  Selecione a aba
+                </option>
+                {tables.map((t, i) => (
+                  <option key={i} value={i}>
+                    {t.name}
                   </option>
-                  <option value="utf-8">UTF-8</option>
-                  <option value="windows-1252">Windows-1252 / Latin-1</option>
-                  <option value="utf-16le">UTF-16 LE</option>
-                  <option value="utf-16be">UTF-16 BE</option>
-                </select>
-              </label>
-            )}
-            {tables.length > 1 && (
-              <label>
-                Aba da planilha
-                <select
-                  aria-label="Aba da planilha"
-                  value={preview ? sheet : ""}
-                  onChange={(e) => chooseSheet(+e.target.value)}
-                >
-                  <option value="" disabled>
-                    Selecione a aba
-                  </option>
-                  {tables.map((t, i) => (
-                    <option key={i} value={i}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-          </div>
+                ))}
+              </select>
+            </label>
+          )}
           {importError && (
             <div className="notice error" role="alert">
               {importError}
             </div>
           )}
-          {preview && (
-            <>
-              <ImportSummary batch={preview.batch} />
-              <p className="muted">
-                {
-                  preview.records.filter((r) =>
-                    doc.records.some((x) => x.id === r.id),
-                  ).length
-                }{" "}
-                MTRs já existentes: acompanhamento e conclusões serão
-                preservados.{" "}
-                {
-                  preview.records.filter(
-                    (r) =>
-                      r.conflict ||
-                      doc.records.some(
-                        (x) =>
-                          x.id === r.id &&
-                          JSON.stringify(x.data) !== JSON.stringify(r.data),
-                      ),
-                  ).length
-                }{" "}
-                divergências para revisão.
-              </p>
-              <p className="muted">
-                {
-                  new Set(
-                    [...preview.batch.ignored, ...preview.batch.issues]
-                      .filter((origin) =>
-                        doc.records.some((r) => r.id === origin.data["MTR Nº"]),
-                      )
-                      .map((origin) => origin.data["MTR Nº"]),
-                  ).size
-                }{" "}
-                MTRs já cadastrados aparecem em origens ignoradas ou
-                inconsistentes. Essas origens também serão anexadas e
-                sinalizadas, preservando o acompanhamento atual.
-              </p>
-              <h3>Prévia dos elegíveis</h3>
-              <div className="table-wrap preview-table">
-                <table>
-                  <thead>
-                    <tr>
-                      {fields.map((k) => (
-                        <th key={k}>{k}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {preview.records.slice(0, 8).map((r) => (
-                      <tr key={r.id}>
-                        {fields.map((k) => (
-                          <td key={k}>
-                            {[
-                              "Motorista",
-                              "Placa",
-                              "Observações do Gerador",
-                            ].includes(k)
-                              ? display(r.data[k])
-                              : r.data[k]}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <Issues issues={preview.batch.issues} />
-            </>
-          )}
-          <div className="modal-actions">
-            <button
-              className="button secondary"
-              onClick={() => setImportOpen(false)}
-            >
-              Cancelar
-            </button>
-            <button
-              className="button primary"
-              disabled={!preview || busy}
-              onClick={() => void importConfirm()}
-            >
-              <Check size={17} />
-              Confirmar importação
-              {preview ? " • " + preview.records.length + " MTRs" : ""}
-            </button>
-          </div>
         </Modal>
       )}
       {exportOpen && (

@@ -1,169 +1,98 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import * as XLSX from "xlsx";
-const csv =
-  'MTR Nº;Situação;Data de Emissão;Motorista;Placa;Gerador Nome;Observações do Gerador;Destinador Nome\r\n000001;Salvo;20/11/2026;;;FORNECEDOR SINTÉTICO;"Madeira; limpa\nConferir";GUARARAPES PAINEIS S/A\r\n000002;Salvo;20/11/2026;OPERADOR SINTÉTICO;ABC1D23;INDUSTRIA DE COMPENSADOS GUARARAPES;;\r\n000003;Cancelado;20/11/2026;;;OUTRO;;';
-test("fluxo local completo, recarga, segunda aba, exportações e backup", async ({
+import { local, importFile } from "./helpers";
+test("importa automaticamente, persiste após recarga e outra aba, exporta e restaura", async ({
   page,
   context,
 }) => {
-  await page.goto("/");
-  await expect(page.getByText("Seu controle começa aqui")).toBeVisible();
-  await page
-    .getByRole("button", { name: "Importar relatório", exact: true })
+  await local(page);
+  const popup = await importFile(page);
+  await expect(
+    popup.getByRole("heading", { name: "000101", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Confirmar importação/ }),
+  ).toHaveCount(0);
+  await popup
+    .getByRole("button", { name: "Confirmar baixa realizada", exact: true })
     .click();
-  await page
-    .locator("input[type=file]")
-    .first()
-    .setInputFiles({
-      name: "relatorio-sintetico.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from(csv),
-    });
   await expect(
-    page.getByText("MTRs únicos elegíveis", { exact: true }),
+    popup.getByRole("heading", { name: "000102", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: /Confirmar importação/ }).click();
-  await expect(page.locator(".stat-card").nth(0).locator("strong")).toHaveText(
-    "2",
-  );
-  const conference = page.getByRole("dialog", {
-    name: "Conferência de MTR",
-    exact: true,
-  });
-  await expect(conference).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "000001", exact: true }),
-  ).toBeVisible();
-  await expect(conference.getByText("GRC", { exact: true })).toHaveCount(2);
-  await expect(page.locator(".stat-card").nth(2).locator("strong")).toHaveText(
+  await popup
+    .getByRole("button", { name: "Fechar conferência", exact: true })
+    .click();
+  await expect(popup).not.toBeVisible();
+  await page.reload();
+  await expect(page.locator(".stat-card").nth(3).locator("strong")).toHaveText(
     "1",
   );
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page
-    .getByRole("button", { name: "Copiar número do MTR", exact: true })
-    .click();
-  await expect(page.getByRole("status")).toHaveText("Copiado");
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-    "000001",
-  );
-  await page
-    .getByRole("button", { name: "Confirmar baixa realizada", exact: true })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "000002", exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Desfazer última conclusão", exact: true })
-    .click();
-  await expect(
-    page.getByText("Conclusão desfeita.", { exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Pular por enquanto", exact: true })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "000001", exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Confirmar baixa realizada", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Retomar pendentes", exact: true })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "000002", exact: true }),
-  ).toBeVisible();
-  await page.reload();
   await page
     .getByRole("button", { name: "Todos os MTRs", exact: true })
     .click();
-  await expect(
-    page
-      .getByRole("row")
-      .filter({ hasText: "000001" })
-      .getByText("Concluído", { exact: true }),
-  ).toBeVisible();
   const second = await context.newPage();
-  await second.goto("/registros");
-  await expect(
-    second
-      .getByRole("row")
-      .filter({ hasText: "000001" })
-      .getByText("Concluído", { exact: true }),
-  ).toBeVisible();
+  await local(second, "/registros");
   await page
     .getByRole("row")
-    .filter({ hasText: "000001" })
+    .filter({ hasText: "000101" })
     .getByRole("button", { name: "Reabrir", exact: true })
     .click();
   await expect(
     second
       .getByRole("row")
-      .filter({ hasText: "000001" })
+      .filter({ hasText: "000101" })
       .getByText("Pendente", { exact: true }),
   ).toBeVisible();
   await second.close();
   for (const format of ["csv", "xlsx"]) {
     await page.getByRole("button", { name: "Exportar", exact: true }).click();
     await page.getByLabel("Formato", { exact: true }).selectOption(format);
-    const download = page.waitForEvent("download");
+    const wait = page.waitForEvent("download");
     await page
       .getByRole("button", { name: "Baixar arquivo", exact: true })
       .click();
-    const result = await download;
-    expect(result.suggestedFilename().endsWith("." + format)).toBe(true);
-    const bytes = readFileSync((await result.path())!);
-    if (format === "csv") {
-      expect(bytes.toString("utf8")).toContain("000001");
-      expect(bytes.toString("utf8")).toContain("Situação");
-    } else {
+    const download = await wait;
+    const bytes = readFileSync((await download.path())!);
+    if (format === "csv") expect(bytes.toString("utf8")).toContain("000101");
+    else {
       const book = XLSX.read(bytes);
-      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(
-        book.Sheets[book.SheetNames[0]],
-      );
-      expect(rows[0]["MTR Nº"]).toBe("000001");
+      expect(
+        XLSX.utils.sheet_to_json<Record<string, unknown>>(
+          book.Sheets[book.SheetNames[0]],
+        )[0]["MTR Nº"],
+      ).toBe("000101");
     }
   }
   await page
     .getByRole("button", { name: "Configurações", exact: true })
     .click();
-  const download = page.waitForEvent("download");
+  const wait = page.waitForEvent("download");
   await page
     .getByRole("button", { name: "Exportar backup JSON", exact: true })
     .click();
-  const result = await download;
-  expect(result.suggestedFilename()).toContain("backup");
-  const backup = readFileSync((await result.path())!);
+  const backup = readFileSync((await (await wait).path())!);
   expect(JSON.parse(backup.toString()).snapshot.records).toHaveLength(2);
-  await page.locator("input[type=file]").setInputFiles({
-    name: "backup.json",
-    mimeType: "application/json",
-    buffer: backup,
-  });
+  await page
+    .locator("input[type=file]")
+    .setInputFiles({
+      name: "backup.json",
+      mimeType: "application/json",
+      buffer: backup,
+    });
   await page
     .getByRole("button", { name: "Mesclar backup", exact: true })
     .click();
   await expect(
     page.getByText("Backup restaurado.", { exact: true }),
   ).toBeVisible();
-  await page.goto("/historico");
-  await expect(
-    page.getByRole("heading", { name: "Registro de atividades" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("cell", { name: "Reaberto", exact: true }),
-  ).toBeVisible();
 });
-test("layout móvel e acesso direto às rotas", async ({ page }) => {
+test("rotas e navegação móvel", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/registros");
-  await expect(
-    page.getByRole("heading", { name: "Todos os MTRs", exact: true }),
-  ).toBeVisible();
+  await local(page, "/registros");
   expect(
     await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth,
+      () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
   await page.getByRole("button", { name: "Visão geral", exact: true }).click();

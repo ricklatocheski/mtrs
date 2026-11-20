@@ -83,8 +83,7 @@ export default function ConferenceDialog(p: Props) {
     ? Math.round((done / p.records.length) * 100)
     : 0;
   const state = p.current ? effectiveState(p.current) : null;
-  const owned =
-    p.current && state === "conferencia" && p.current.owner === p.actor;
+
   const position = p.current
     ? p.records.findIndex((r) => r.id === p.current!.id) + 1
     : 0;
@@ -224,7 +223,14 @@ export default function ConferenceDialog(p: Props) {
                   </div>
                 )}
                 <div className="conference-fields">
-                  {fields.slice(2).map((key) => {
+                  {(
+                    [
+                      "Data de Emissão",
+                      "Placa",
+                      "Motorista",
+                      "Observações do Gerador",
+                    ] as const
+                  ).map((key) => {
                     const Icon = rowIcons[key as keyof typeof rowIcons];
                     return (
                       <div
@@ -232,7 +238,9 @@ export default function ConferenceDialog(p: Props) {
                           "conference-field " +
                           (key === "Observações do Gerador"
                             ? "observations"
-                            : "")
+                            : key === "Motorista"
+                              ? "wide"
+                              : "")
                         }
                         key={key}
                       >
@@ -253,26 +261,22 @@ export default function ConferenceDialog(p: Props) {
                     );
                   })}
                 </div>
-                <div className="conference-original">
-                  <div className="conference-original-status">
-                    <span>
-                      Situação original:{" "}
-                      <strong>{p.current.data.Situação}</strong>
-                    </span>
-                    <CopyButton
-                      key={p.current.id + "-original-status"}
-                      withText
-                      label="Copiar Situação"
-                      onClick={() => p.onCopy(p.current!.data.Situação)}
-                    />
-                  </div>
-                  <button onClick={p.onReview}>Origens e histórico</button>
+                <div className="conference-copy-row">
                   <button
                     className="conference-copy-all"
                     onClick={() =>
                       void p.onCopy(
-                        fields
-                          .map((key) => key + ": " + rowValue(key))
+                        [
+                          "MTR Nº",
+                          "Data de Emissão",
+                          "Motorista",
+                          "Placa",
+                          "Observações do Gerador",
+                        ]
+                          .map(
+                            (k) =>
+                              k + ": " + rowValue(k as (typeof fields)[number]),
+                          )
                           .join("\n"),
                       )
                     }
@@ -280,6 +284,12 @@ export default function ConferenceDialog(p: Props) {
                     <Copy size={15} />
                     Copiar resumo completo
                   </button>
+                  <details className="conference-extra">
+                    <summary>Informações do documento</summary>
+                    <p>Gerador: {p.current.data["Gerador Nome"]}</p>
+                    <p>Situação original: {p.current.data.Situação}</p>
+                    <button onClick={p.onReview}>Origens e histórico</button>
+                  </details>
                 </div>
                 <div className="conference-manual-note">
                   <ShieldCheck size={17} />
@@ -346,10 +356,6 @@ export default function ConferenceDialog(p: Props) {
                   <Check size={16} />
                   MTR {p.lastDone}: baixa registrada.
                 </span>
-                <button onClick={p.onUndo} disabled={p.busy}>
-                  <Undo2 size={14} />
-                  Desfazer última conclusão
-                </button>
               </div>
             )}
             {p.notice && (
@@ -361,57 +367,23 @@ export default function ConferenceDialog(p: Props) {
           </div>
           <div className="conference-actions">
             {p.current ? (
-              <>
+              state === "concluido" ? (
+                <span className="conference-already-complete">
+                  <CheckCheck size={18} />
+                  Baixa já registrada
+                </span>
+              ) : (
                 <button
-                  className="button secondary conference-previous"
-                  disabled={p.busy || !p.canPrevious}
-                  onClick={p.onPrevious}
+                  className="button primary conference-confirm"
+                  disabled={p.busy || p.current.conflict}
+                  onClick={(event) => {
+                    if (event.detail <= 1) p.onComplete();
+                  }}
                 >
-                  <ChevronLeft size={16} />
-                  Anterior
+                  <Check size={18} />
+                  {p.busy ? "Salvando…" : "Confirmar baixa realizada"}
                 </button>
-                <button
-                  className="button secondary"
-                  disabled={
-                    p.busy ||
-                    state === "concluido" ||
-                    (state === "conferencia" && !owned)
-                  }
-                  onClick={p.onSkip}
-                >
-                  <SkipForward size={16} />
-                  Pular por enquanto
-                </button>
-                {state === "concluido" ? (
-                  <button
-                    className="button primary"
-                    disabled={p.busy}
-                    onClick={p.onReopen}
-                  >
-                    <Undo2 size={16} />
-                    Reabrir MTR
-                  </button>
-                ) : owned ? (
-                  <button
-                    className="button primary conference-confirm"
-                    disabled={p.busy || p.current.conflict}
-                    onClick={(event) => {
-                      if (event.detail <= 1) p.onComplete();
-                    }}
-                  >
-                    <Check size={18} />
-                    {p.busy ? "Salvando…" : "Confirmar baixa realizada"}
-                  </button>
-                ) : (
-                  <button
-                    className="button primary"
-                    disabled={p.busy}
-                    onClick={p.onReserve}
-                  >
-                    {p.busy ? "Carregando…" : "Reservar para conferir"}
-                  </button>
-                )}
-              </>
+              )
             ) : (
               <button
                 className="button secondary"
