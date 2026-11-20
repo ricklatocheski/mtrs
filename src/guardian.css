@@ -698,6 +698,12 @@
     padding: 20px 0;
   }
 }
+@media (max-width: 360px) {
+  .guardian-brand h1 em {
+    font-size: 14px;
+    white-space: nowrap;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .guardian-page *,
   .guardian-page *::before,
