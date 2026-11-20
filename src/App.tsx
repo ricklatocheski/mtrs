@@ -23,7 +23,6 @@ import {
   AlertCircle,
   RefreshCw,
   LogOut,
-  Menu,
   Database,
   ShieldCheck,
   ArrowUpRight,
@@ -175,7 +174,6 @@ export default function App() {
   const [page, setPage] = useState<Page>(
     () => (location.pathname.slice(1) as Page) || "painel",
   );
-  const [mobile, setMobile] = useState(false);
   const [mode, setMode] = useState<"local" | "shared">(() =>
     localStorage.getItem("mtr-mode") === "shared" && supabase
       ? "shared"
@@ -250,7 +248,6 @@ export default function App() {
   function go(p: Page) {
     setPage(p);
     history.pushState({}, "", p === "painel" ? "/" : "/" + p);
-    setMobile(false);
   }
   useEffect(() => {
     const fn = () => setPage((location.pathname.slice(1) as Page) || "painel");
@@ -569,7 +566,7 @@ export default function App() {
   const reviewed = doc.batches.find((b) => b.id === reviewBatch);
   return (
     <div className="shell">
-      <aside className={"sidebar " + (mobile ? "mobile-open" : "")}>
+      <aside className="sidebar">
         <a
           href="/"
           className="brand"
@@ -580,79 +577,27 @@ export default function App() {
         >
           <img src="/guararapes.png" alt="Guararapes Painéis" />
         </a>
-        <div className="brand-divider" />
-        <div className="product-mark">
-          <div className="product-icon">
-            <Leaf size={19} />
-          </div>
-          <div>
-            <strong>Controle de MTR</strong>
-            <span>GESTÃO AMBIENTAL</span>
-          </div>
-        </div>
-        <p className="nav-label">ÁREA DE TRABALHO</p>
-        <nav>
+        <div className="nav-label">Recebimento</div>
+        <nav aria-label="Navegação principal">
           {nav.map(([id, title, Icon]) => (
             <button
               key={id}
+              aria-label={title}
+              aria-current={page === id ? "page" : undefined}
               onClick={() => go(id)}
               className={page === id ? "nav-item selected" : "nav-item"}
             >
               <Icon size={19} />
-              {title}
-              {id === "fila" && pending + active > 0 && (
-                <span className="nav-count">{pending + active}</span>
+              <span>{title}</span>
+              {page === id && (
+                <ChevronRight className="nav-chevron" size={16} />
               )}
             </button>
           ))}
         </nav>
-        <div className="sidebar-bottom">
-          <div className="local-card">
-            {mode === "local" ? <HardDrive size={19} /> : <Cloud size={19} />}
-            <div>
-              <strong>
-                {mode === "local" ? "Modo local" : "Modo compartilhado"}
-              </strong>
-              <p>
-                {mode === "local"
-                  ? "Dados neste navegador"
-                  : "Supabase • acesso autenticado"}
-              </p>
-            </div>
-          </div>
-          <div className="operator">
-            <div className="avatar">
-              {user ? user.slice(0, 2).toUpperCase() : "OP"}
-            </div>
-            <div>
-              <strong>
-                {mode === "shared"
-                  ? (user ?? "Entre na sua conta")
-                  : "Operador local"}
-              </strong>
-              <small>
-                {mode === "local" ? "Ambiente de trabalho" : actor.slice(0, 8)}
-              </small>
-            </div>
-            <button
-              className="icon-button"
-              aria-label="Configurações do operador"
-              onClick={() => go("config")}
-            >
-              <Settings size={17} />
-            </button>
-          </div>
-        </div>
       </aside>
       <div className="workspace">
         <header className="topbar">
-          <button
-            className="mobile-toggle icon-button"
-            onClick={() => setMobile(!mobile)}
-            aria-label="Abrir menu"
-          >
-            <Menu />
-          </button>
           <div className="breadcrumb">
             Gestão ambiental <ChevronRight size={14} />
             <strong>Controle de MTR</strong>

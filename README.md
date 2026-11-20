@@ -2,7 +2,7 @@
 
 Sistema de apoio à conferência e acompanhamento manual de baixas de Manifestos de Transporte de Resíduos. Interface em português, logo original fornecida e identidade em verde-floresta, madeira e branco.
 
-A sidebar usa fundo preto com textos e ícones dourados. A janela de importação segue a referência visual do painel de erros de lançamento: fundo desfocado, faixa de madeira com a marca à esquerda e área clara com as etapas de relatório, revisão e confirmação à direita. No celular, a faixa decorativa é ocultada para priorizar a operação.
+A sidebar reproduz o painel de erros de lançamento: fundo grafite, logo no topo, rótulo Recebimento, mesmos espaçamentos e destaque do menu ativo em verde-oliva com texto dourado e chevron. Os links são os do controle de MTR. Em tablets, vira uma faixa de ícones; no celular, a navegação fica na barra inferior, como na referência. A janela de importação também segue essa referência visual: fundo desfocado, faixa de madeira com a marca à esquerda e área clara com as etapas de relatório, revisão e confirmação à direita. No celular, a faixa decorativa é ocultada para priorizar a operação.
 
 **A confirmação registra a declaração do operador. O sistema não acessa nem confirma baixas no portal oficial e nunca altera a situação original do relatório.**
 

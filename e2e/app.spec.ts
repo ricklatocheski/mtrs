@@ -161,7 +161,6 @@ test("layout móvel e acesso direto às rotas", async ({ page }) => {
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
-  await page.getByRole("button", { name: "Abrir menu" }).click();
   await page.getByRole("button", { name: "Visão geral", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Visão geral", exact: true }),
