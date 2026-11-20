@@ -86,11 +86,15 @@ function Modal({
   children,
   onClose,
   wide = false,
+  branded = false,
+  reviewReady = false,
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
   wide?: boolean;
+  branded?: boolean;
+  reviewReady?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -102,16 +106,66 @@ function Modal({
     <dialog
       ref={ref}
       aria-label={title}
-      className={wide ? "modal wide" : "modal"}
+      className={(wide ? "modal wide" : "modal") + (branded ? " branded" : "")}
       onCancel={onClose}
     >
-      <div className="modal-head">
-        <h2>{title}</h2>
-        <button className="icon-button" onClick={onClose} aria-label="Fechar">
-          <X />
-        </button>
+      {branded && (
+        <aside className="import-brand-panel">
+          <img src="/guararapes.png" alt="Guararapes Painéis" />
+          <div className="import-brand-message">
+            <span className="import-brand-symbol">
+              <Leaf size={28} />
+            </span>
+            <span className="eyebrow">CONTROLE DE MTR</span>
+            <h3>
+              Cada documento.
+              <br />
+              Uma etapa
+              <br />
+              bem cuidada.
+            </h3>
+            <p>Organize seu relatório e acompanhe as baixas com clareza.</p>
+          </div>
+          <div className="import-brand-footer">
+            <ShieldCheck size={18} />
+            <span>
+              Precisão em cada etapa
+              <br />
+              da gestão ambiental.
+            </span>
+          </div>
+        </aside>
+      )}
+      <div className={branded ? "import-modal-content" : undefined}>
+        {branded && (
+          <ol className="import-steps" aria-label="Etapas da importação">
+            {["Relatório", "Revisão", "Confirmação"].map((label, index) => (
+              <li
+                key={label}
+                className={
+                  (index === (reviewReady ? 1 : 0) ? "active " : "") +
+                  (reviewReady && index === 0 ? "done" : "")
+                }
+                aria-current={
+                  index === (reviewReady ? 1 : 0) ? "step" : undefined
+                }
+              >
+                <span>
+                  {reviewReady && index === 0 ? <Check size={12} /> : index + 1}
+                </span>
+                {label}
+              </li>
+            ))}
+          </ol>
+        )}
+        <div className="modal-head">
+          <h2>{title}</h2>
+          <button className="icon-button" onClick={onClose} aria-label="Fechar">
+            <X />
+          </button>
+        </div>
+        {children}
       </div>
-      {children}
     </dialog>
   );
 }
@@ -1606,6 +1660,8 @@ export default function App() {
         <Modal
           title="Importar relatório"
           wide
+          branded
+          reviewReady={!!preview}
           onClose={() => setImportOpen(false)}
         >
           <p className="modal-description">

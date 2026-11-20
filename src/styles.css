@@ -1058,6 +1058,179 @@ label {
 .modal.wide {
   max-width: 1000px;
 }
+.modal.branded[open] {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  max-width: 1100px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 16px;
+}
+.import-brand-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 570px;
+  padding: 35px 28px 28px;
+  color: #f1d2a2;
+  background:
+    linear-gradient(180deg, #171a16d9 0%, #24241dc7 50%, #39302175 100%),
+    url("/madeira.jpg") center / cover;
+}
+.import-brand-panel > img {
+  width: 194px;
+  max-width: 100%;
+  height: auto;
+}
+.import-brand-message {
+  margin: auto 0;
+  padding: 42px 0;
+}
+.import-brand-symbol {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border: 1px solid #e4c28d66;
+  border-radius: 50%;
+  margin-bottom: 27px;
+  background: #e4c28d0a;
+}
+.import-brand-message .eyebrow {
+  color: #d2b78d;
+  font-size: 0.65rem;
+  letter-spacing: 1.7px;
+}
+.import-brand-message h3 {
+  font-size: 1.55rem;
+  line-height: 1.55;
+  letter-spacing: -0.6px;
+  font-weight: 600;
+  margin: 12px 0 18px;
+  color: #f1d2a2;
+}
+.import-brand-message p {
+  font-size: 0.8rem;
+  line-height: 1.9;
+  color: #e2cbaa;
+}
+.import-brand-footer {
+  border-top: 1px solid #e4c28d38;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 20px;
+  font-size: 0.69rem;
+  line-height: 1.8;
+  color: #e2cbaa;
+}
+.import-brand-footer svg {
+  flex-shrink: 0;
+}
+.import-modal-content {
+  min-width: 0;
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 35px 34px 25px;
+}
+.import-steps {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 22px;
+  padding: 0 35px 0 0;
+  margin: 0 0 30px;
+  list-style: none;
+}
+.import-steps li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.7rem;
+  color: #819073;
+}
+.import-steps li > span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #dfe5d7;
+  border-radius: 50%;
+  font-size: 0.65rem;
+}
+.import-steps li.active {
+  color: #526b45;
+  font-weight: 700;
+}
+.import-steps li.active > span {
+  background: #62794f;
+  color: white;
+  border-color: #62794f;
+}
+.import-steps li.done > span {
+  background: #edf3e7;
+  color: #62794f;
+  border-color: #dfe8d5;
+}
+.branded .modal-head {
+  margin-bottom: 11px;
+}
+.branded .modal-head h2 {
+  font-size: 1.5rem;
+  letter-spacing: -0.65px;
+}
+.branded .modal-head > .icon-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #f2f5ed;
+  border-radius: 50%;
+  padding: 7px;
+}
+.branded .modal-description {
+  color: #778568;
+  margin-bottom: 24px;
+}
+.branded .drop-zone {
+  border-color: #cbd6bd;
+  background: #fafbf7;
+  padding: 29px 18px;
+}
+.branded .modal-actions {
+  padding-top: 19px;
+  margin-top: 22px;
+}
+.branded .modal-actions .button {
+  min-height: 43px;
+}
+@media (max-width: 800px) {
+  .modal.branded[open] {
+    grid-template-columns: 1fr;
+    max-width: 620px;
+  }
+  .import-brand-panel {
+    display: none;
+  }
+  .import-modal-content {
+    padding: 30px 22px 22px;
+    max-height: 86vh;
+  }
+  .import-steps {
+    gap: 13px;
+    padding-right: 20px;
+    margin-bottom: 28px;
+  }
+  .import-steps li {
+    font-size: 0.65rem;
+    gap: 5px;
+  }
+  .branded .modal-head h2 {
+    font-size: 1.3rem;
+  }
+  .branded .modal-actions .button {
+    flex: 1;
+  }
+}
 .modal::backdrop {
   background: #152b25a6;
   backdrop-filter: blur(3px);
