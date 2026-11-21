@@ -50,7 +50,7 @@ test("símbolo original e ponteiro visível: olhar acompanha em campos e no desa
   await expect.poll(() => pupils.getAttribute("style")).not.toBe(challengeLeft);
 });
 
-test("movimento reduzido mantém o olho responsivo; pausa manual suspende olho e destaque", async ({
+test("movimento reduzido mantém o olho responsivo e login não mostra elementos removidos", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -71,19 +71,22 @@ test("movimento reduzido mantém o olho responsivo; pausa manual suspende olho e
     "style",
     "transform: translate(0px, 0px) rotate(0deg);",
   );
-  await page
-    .getByRole("button", { name: "Pausar animações", exact: true })
-    .click();
-  await expect(page.locator(".guardian-pointer")).toHaveCSS("opacity", "0");
-  await expect(pupils).toHaveAttribute(
-    "style",
-    "transform: translate(0px, 0px);",
-  );
-  await page
-    .getByRole("button", { name: "Ativar animações", exact: true })
-    .click();
-  await page.mouse.move(20, 50);
-  await expect
-    .poll(() => pupils.getAttribute("style"))
-    .toContain("translate(-");
+  await expect(
+    page.getByRole("button", { name: "Pausar animações", exact: true }),
+  ).toHaveCount(0);
+  for (const selector of [
+    ".guardian-speech",
+    ".guardian-intro",
+    ".guardian-brand-footer",
+    ".access-session",
+    ".login-step-label",
+    ".guardian-page-footer",
+  ]) {
+    await expect(page.locator(selector)).toHaveCount(0);
+  }
+  await expect(
+    page.getByRole("heading", { name: "Bem-vindo de volta", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Usuário", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Senha", { exact: true })).toBeVisible();
 });

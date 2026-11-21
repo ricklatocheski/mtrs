@@ -16,7 +16,7 @@ A base anterior foi validada com **39 testes de regras, persistência, autentica
 
 ## Animação do login
 
-- Olhos seguem o ponteiro; senha oculta ou revelada mantém o gesto de privacidade. Botão de pausa interrompe o acompanhamento e as animações.
+- Olhos seguem o ponteiro; senha oculta ou revelada mantém o gesto de privacidade. A tela não inclui controle de pausa.
 - Gesto de recolher botão abre conta aleatória. Resposta incorreta não inicia requisição de autenticação; foco permanece no campo de resposta. Voltar preserva campos; trocar conta limpa a resposta.
 - Somente resposta correta inicia login real. Credenciais inválidas continuam recusadas; sessão e perfil são verificados pelo banco. Sucesso exibe confirmação e abre o painel.
 - Movimento reduzido e Enter no celular validados, sem transbordamento horizontal após correção de largura do grid.
@@ -34,4 +34,8 @@ Não houve deploy na conta Netlify, benchmark de carga ou teste entre dispositiv
 
 ## Correção de marca e ponteiro
 
-Cena substituída pelo símbolo original da Guararapes, com articulação somente do olho. Cinco testes focados de navegador passaram: fonte original da imagem, ausência do corpo genérico, coordenadas do destaque no ponteiro, comparação dos pixels com o olhar em lados opostos, acompanhamento no formulário e no desafio, privacidade da senha, pausa manual, retomada, movimento reduzido e uso no celular. Movimento reduzido agora mantém o olho responsivo sem mover a cabeça. Os testes anteriores de regras e segurança não foram alterados.
+Cena substituída pelo símbolo original da Guararapes, com articulação somente do olho. Cinco testes focados de navegador passaram: fonte original da imagem, ausência do corpo genérico, coordenadas do destaque no ponteiro, comparação dos pixels com o olhar em lados opostos, acompanhamento no formulário e no desafio, privacidade da senha, movimento reduzido e uso no celular. Movimento reduzido agora mantém o olho responsivo sem mover a cabeça. Os testes anteriores de regras e segurança não foram alterados.
+
+## Simplificação do login
+
+Os testes de navegador confirmaram a ausência de legendas, etiquetas, textos promocionais, rodapés e controle de pausa. O formulário, o desafio e o acompanhamento do ponteiro permanecem acessíveis no computador e no celular. As novas contas de teste foram criadas nos projetos independentes e seus logins foram validados com perfil de operador. Nenhuma senha foi incluída no código ou nos pacotes.

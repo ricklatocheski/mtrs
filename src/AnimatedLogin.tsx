@@ -6,10 +6,7 @@ import {
   Eye,
   EyeOff,
   LockKeyhole,
-  Pause,
-  Play,
   RefreshCw,
-  ShieldCheck,
   Sparkles,
   UserRound,
 } from "lucide-react";
@@ -42,7 +39,6 @@ export default function AnimatedLogin({
   const [password, setPassword] = useState("");
   const [privateFocus, setPrivateFocus] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [paused, setPaused] = useState(false);
   const [question, setQuestion] = useState(createLoginChallenge);
   const [answer, setAnswer] = useState("");
   const [answerError, setAnswerError] = useState("");
@@ -54,8 +50,7 @@ export default function AnimatedLogin({
   complete.current = onComplete;
   useEffect(() => {
     if (stage !== "reaching" && stage !== "success") return;
-    const reduce =
-      paused || matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const timer = setTimeout(
       () => {
         if (stage === "reaching") setStage("challenge");
@@ -64,7 +59,7 @@ export default function AnimatedLogin({
       reduce ? 0 : stage === "reaching" ? 720 : 850,
     );
     return () => clearTimeout(timer);
-  }, [stage, paused]);
+  }, [stage]);
   useEffect(() => {
     if (stage === "challenge") {
       answerInput.current?.focus();
@@ -78,14 +73,6 @@ export default function AnimatedLogin({
         ? "private"
         : "idle"
       : stage;
-  const caption = {
-    idle: "Mova o mouse. Meu olhar acompanha você.",
-    private: "Sua senha? Eu não vou olhar.",
-    reaching: "Opa, só mais um instante…",
-    challenge: "Uma continha antes de continuar?",
-    checking: "Tudo certo. Conferindo seu acesso…",
-    success: "Acesso liberado. Bem-vindo!",
-  }[mood];
   const inChallenge =
     stage === "challenge" || stage === "checking" || stage === "success";
   async function verify() {
@@ -117,66 +104,21 @@ export default function AnimatedLogin({
     }
   }
   return (
-    <main
-      className={`access-page guardian-page${paused ? " motion-paused" : ""}`}
-    >
+    <main className="access-page guardian-page guardian-clean">
       <section
         className={`access-card guardian-card stage-${stage}`}
         aria-label="Acesso ao controle de MTR"
       >
         <aside className="access-brand guardian-brand">
           <img src="/guararapes.png" alt="Guararapes Painéis" />
-          <div className="guardian-intro">
-            <span className="guardian-kicker">
-              UM NOVO OLHAR PARA O SEU DIA
-            </span>
-            <h1>
-              Seu acesso.
-              <br />
-              <em>Bem acompanhado.</em>
-            </h1>
-          </div>
           <div className="guardian-scene">
-            <LoginGuardian mood={mood} paused={paused} />
-            <div className="guardian-speech" role="status" aria-live="polite">
-              <span className="speech-dot" />
-              {caption}
-            </div>
+            <LoginGuardian mood={mood} paused={false} />
           </div>
-          <footer className="guardian-brand-footer">
-            <span>
-              CONTROLE DE MTR <i /> GUARARAPES
-            </span>
-            <button
-              type="button"
-              className="guardian-motion"
-              aria-pressed={paused}
-              onClick={() => setPaused(!paused)}
-              aria-label={paused ? "Ativar animações" : "Pausar animações"}
-            >
-              {paused ? <Play size={14} /> : <Pause size={14} />}
-            </button>
-          </footer>
         </aside>
         <div className="access-form guardian-form">
-          <div className="login-step-label">
-            <span className="access-lock">
-              <ShieldCheck size={20} />
-            </span>
-            <span>AMBIENTE EXCLUSIVO</span>
-            <span className="login-step-count">
-              {inChallenge ? "02" : "01"}
-              <i>/ 02</i>
-            </span>
-          </div>
           {!inChallenge ? (
             <>
-              <span className="eyebrow">BOM TER VOCÊ POR AQUI</span>
               <h2>Bem-vindo de volta</h2>
-              <p>
-                Entre com seus dados.
-                <br />O nosso guardião acompanha você.
-              </p>
               <form
                 onSubmit={(event) => {
                   event.preventDefault();
@@ -417,14 +359,6 @@ export default function AnimatedLogin({
               </form>
             </div>
           )}
-          <div className="access-session">
-            <LockKeyhole size={14} />
-            <span>
-              Acesso pessoal · Sessão de 24 horas
-              <br />
-              Seus dados, no seu ambiente.
-            </span>
-          </div>
           {allowLocal && stage === "credentials" && (
             <button type="button" className="access-local" onClick={onLocal}>
               Abrir modo local neste computador
@@ -432,9 +366,6 @@ export default function AnimatedLogin({
           )}
         </div>
       </section>
-      <p className="guardian-page-footer">
-        GUARARAPES PAINÉIS <span>·</span> GESTÃO AMBIENTAL
-      </p>
     </main>
   );
 }

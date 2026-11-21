@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { solveLoginChallenge } from "./helpers";
 
-test("olhos acompanham o ponteiro, senha cobre os olhos e pausa interrompe o movimento", async ({
+test("olhos acompanham o ponteiro e senha cobre os olhos sem controle de pausa", async ({
   page,
 }) => {
   await page.goto("/");
@@ -33,17 +33,9 @@ test("olhos acompanham o ponteiro, senha cobre os olhos e pausa interrompe o mov
     "data-mood",
     "private",
   );
-  await page
-    .getByRole("button", { name: "Pausar animações", exact: true })
-    .click();
   await expect(
-    page.getByRole("button", { name: "Ativar animações", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await page.mouse.move(20, 20);
-  await expect(pupils).toHaveAttribute(
-    "style",
-    "transform: translate(0px, 0px);",
-  );
+    page.getByRole("button", { name: "Pausar animações", exact: true }),
+  ).toHaveCount(0);
 });
 
 test("desafio errado não envia credenciais, voltar preserva campos e só resposta certa inicia autenticação", async ({

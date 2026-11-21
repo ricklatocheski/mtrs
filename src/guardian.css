@@ -78,7 +78,7 @@
 }
 .guardian-eyes {
   transform-origin: 119px 75px;
-  animation: guardian-blink 6s 2s infinite;
+  animation: none;
 }
 .guardian-profile-brow {
   transform-origin: 119px 67px;
@@ -707,5 +707,69 @@
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Login essencial: marca, símbolo e formulário, sem textos promocionais. */
+.guardian-clean {
+  padding: 30px 24px;
+  gap: 0;
+}
+.guardian-clean .guardian-card {
+  min-height: 540px;
+}
+.guardian-clean .guardian-brand > .guardian-scene {
+  margin: auto -13px;
+  padding: 20px 0 0;
+}
+.guardian-clean .guardian-form {
+  justify-content: center;
+  padding-top: 38px;
+  padding-bottom: 38px;
+}
+.guardian-clean .guardian-form h2 {
+  margin-top: 0;
+}
+.guardian-clean .guardian-challenge-content form {
+  margin-top: 22px;
+}
+@media (max-width: 640px) {
+  .guardian-clean {
+    padding: 16px 14px;
+  }
+  .guardian-clean .guardian-card {
+    min-height: 0;
+  }
+  .guardian-clean .guardian-brand {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 150px;
+    gap: 12px;
+    align-items: center;
+    min-height: 0;
+    padding: 20px 23px;
+  }
+  .guardian-clean .guardian-brand > img {
+    width: 154px;
+  }
+  .guardian-clean .guardian-brand > .guardian-scene {
+    position: static;
+    width: 150px;
+    right: auto;
+    top: auto;
+    margin: 0;
+    padding: 0;
+  }
+  .guardian-clean .guardian-form {
+    padding: 28px 25px;
+  }
+}
+@media (max-width: 360px) {
+  .guardian-clean .guardian-brand {
+    grid-template-columns: minmax(0, 1fr) 128px;
+    gap: 8px;
+    padding: 18px;
+  }
+  .guardian-clean .guardian-brand > .guardian-scene {
+    width: 128px;
   }
 }

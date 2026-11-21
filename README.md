@@ -36,7 +36,7 @@ O próprio símbolo dourado fornecido é usado na cena: rosto de perfil, cocar, 
 
 O desafio é uma interação visual local; não é um CAPTCHA nem substitui autenticação, RLS ou as validações de sessão do servidor. Não registra respostas nem senhas no armazenamento do aplicativo. O login persistente válido continua respeitando o prazo original de 24 horas.
 
-Movimento usa SVG e CSS, sem nova dependência ou serviço externo. O ponteiro atualiza somente transformações em refs, limitado a um requestAnimationFrame por quadro; não há renderização React por movimento nem loop ocioso. Há botão de pausar animações e respeito a prefers-reduced-motion, conforme a [documentação MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/%40media/prefers-reduced-motion). Teclado e celular mantêm o mesmo fluxo com foco automático na resposta.
+Movimento usa SVG e CSS, sem nova dependência ou serviço externo. O ponteiro atualiza somente transformações em refs, limitado a um requestAnimationFrame por quadro; não há renderização React por movimento nem loop ocioso. O movimento respeita prefers-reduced-motion, conforme a [documentação MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/%40media/prefers-reduced-motion). Teclado e celular mantêm o mesmo fluxo com foco automático na resposta.
 
 ## Infraestrutura Supabase
 
@@ -95,4 +95,8 @@ Repositório: https://github.com/ricklatocheski/mtrs. Nenhum relatório operacio
 
 ## Ajuste do símbolo e do ponteiro
 
-O olhar usa a posição real do olho no SVG, com deslocamento visível da pupila. Um destaque dourado acompanha o ponteiro também sobre os campos, sem interceptar cliques. Na preferência de movimento reduzido, a cabeça fica parada e a resposta direta do olho continua ativa, sem transição. Pausar animações centraliza o olho e esconde o destaque. No campo de senha, o gesto de privacidade continua cobrindo o olho.
+O olhar usa a posição real do olho no SVG, com deslocamento visível da pupila. Um destaque dourado acompanha o ponteiro também sobre os campos, sem interceptar cliques. Na preferência de movimento reduzido, a cabeça fica parada e a resposta direta do olho continua ativa, sem transição. No campo de senha, o gesto de privacidade continua cobrindo o olho.
+
+## Login simplificado
+
+A tela inicial mostra a marca, o símbolo com olhar responsivo e o formulário de usuário e senha. Textos promocionais, etiquetas de ambiente, aviso de sessão, legenda junto ao símbolo e botão de pausa foram retirados. O olho reage ao ponteiro sem animação de piscar contínua; a preferência de movimento reduzido continua respeitada. A validade de 24 horas continua sendo aplicada pelo servidor. Contas de teste foram criadas separadamente para cada projeto, como operadores; suas senhas ficam apenas no arquivo privado entregue ao usuário.
