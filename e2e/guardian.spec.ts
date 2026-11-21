@@ -113,10 +113,13 @@ test("celular e movimento reduzido mantêm o desafio acessível por teclado", as
   await page.goto("/");
   await expect(page.locator(".guardian")).toBeVisible();
   await page.mouse.move(10, 10);
-  await expect(page.locator(".guardian-pupils")).toHaveAttribute(
+  await expect(page.locator(".guardian-head")).toHaveAttribute(
     "style",
-    "transform: translate(0px, 0px);",
+    "transform: translate(0px, 0px) rotate(0deg);",
   );
+  await expect
+    .poll(() => page.locator(".guardian-pupils").getAttribute("style"))
+    .not.toContain("translate(0px, 0px)");
   await page.getByLabel("Usuário", { exact: true }).fill("teste");
   await page.getByLabel("Senha", { exact: true }).fill("senha-sintetica");
   await page.getByLabel("Senha", { exact: true }).press("Enter");

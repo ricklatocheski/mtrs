@@ -1,6 +1,6 @@
 # Validação — 20/11/2026
 
-Esta revisão teve **39 testes de regras, persistência, autenticação e SQL e 12 cenários únicos de navegador aprovados**, incluindo execuções focadas com Supabase real. Compilação TypeScript e build Vite de produção verificados na entrega.
+A base anterior foi validada com **39 testes de regras, persistência, autenticação e SQL e 12 cenários únicos de navegador aprovados**, incluindo execuções focadas com Supabase real. Compilação TypeScript e build Vite de produção verificados na entrega.
 
 ## Cobertura
 
@@ -31,3 +31,7 @@ O relatório operacional fornecido foi validado localmente em revisões anterior
 Advisores Supabase revisados: o aviso de [RLS sem policy](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) corresponde ao bootstrap privado, intencionalmente inacessível a clientes. Os sete avisos de [SECURITY DEFINER](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) correspondem aos RPCs autorizados: validam sessão e vínculo e, quando necessário, administrador; o RPC interno não tem execução pública. A [proteção adicional contra senhas vazadas](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) está desativada no provedor. O cadastro exige senha de 10 a 128 caracteres. Não houve auditoria independente.
 
 Não houve deploy na conta Netlify, benchmark de carga ou teste entre dispositivos físicos. O ZIP inclui dist e configuração de publicação. Limites: importação 30 MB, backup 50 MB, snapshot compartilhado 40 MB. O sistema não integra o portal MTR: conclusão é declaração manual do operador.
+
+## Correção de marca e ponteiro
+
+Cena substituída pelo símbolo original da Guararapes, com articulação somente do olho. Cinco testes focados de navegador passaram: fonte original da imagem, ausência do corpo genérico, coordenadas do destaque no ponteiro, comparação dos pixels com o olhar em lados opostos, acompanhamento no formulário e no desafio, privacidade da senha, pausa manual, retomada, movimento reduzido e uso no celular. Movimento reduzido agora mantém o olho responsivo sem mover a cabeça. Os testes anteriores de regras e segurança não foram alterados.

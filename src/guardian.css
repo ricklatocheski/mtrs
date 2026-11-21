@@ -63,97 +63,93 @@
   width: 100%;
   overflow: visible;
 }
+
 .guardian-head {
   transform-origin: 180px 180px;
-  transition: transform 160ms ease-out;
+  transition: transform 100ms ease-out;
+}
+.guardian-emblem {
+  width: 332px !important;
+  height: 332px;
+  overflow: hidden !important;
 }
 .guardian-pupils {
-  transition: transform 120ms ease-out;
+  transition: transform 70ms linear;
 }
 .guardian-eyes {
-  transform-origin: 180px 184px;
+  transform-origin: 119px 75px;
   animation: guardian-blink 6s 2s infinite;
+}
+.guardian-profile-brow {
+  transform-origin: 119px 67px;
+  transition: transform 220ms;
+}
+.guardian-closed-eye {
+  opacity: 0;
 }
 .guardian-hand {
   transform-box: view-box;
-  transition: transform 500ms cubic-bezier(0.2, 0.8, 0.25, 1);
-}
-.guardian-hand-left {
-  transform-origin: 121px 315px;
-}
-.guardian-hand-right {
-  transform-origin: 249px 315px;
-}
-.guardian-serious {
+  transform-origin: 249px 300px;
   opacity: 0;
-  transition: opacity 180ms;
+  transform: translate(0, 35px);
+  transition:
+    transform 450ms cubic-bezier(0.2, 0.8, 0.25, 1),
+    opacity 180ms;
 }
-.guardian-smile {
+.guardian-private .guardian-hand-right {
   opacity: 1;
-  transition: opacity 180ms;
+  transform: translate(-9px, -128px) rotate(-12deg);
 }
-.guardian-brow-left {
-  transform-origin: 150px 163px;
-  transition: transform 220ms;
+.guardian-private .guardian-eyes {
+  animation: none;
+  opacity: 0;
 }
-.guardian-brow-right {
-  transform-origin: 208px 163px;
-  transition: transform 220ms;
+.guardian-private .guardian-closed-eye {
+  opacity: 1;
+}
+.guardian-reaching .guardian-hand-right {
+  opacity: 1;
+  transform: translate(43px, -18px) rotate(45deg);
+}
+.guardian-challenge .guardian-profile-brow,
+.guardian-checking .guardian-profile-brow {
+  transform: rotate(12deg) translateY(1px);
 }
 .guardian-success-mark {
   opacity: 0;
   transform: scale(0.5);
-  transform-origin: 277px 92px;
+  transform-origin: 291px 67px;
   transition:
     transform 350ms cubic-bezier(0.2, 1.6, 0.5, 1),
     opacity 180ms;
 }
-.guardian-private .guardian-hand-left {
-  transform: translate(12px, -91px) rotate(18deg);
-}
-.guardian-private .guardian-hand-right {
-  transform: translate(-17px, -91px) rotate(-18deg);
-}
-.guardian-private .guardian-eyes {
-  animation: none;
-  transform: scaleY(0.12);
-}
-.guardian-reaching .guardian-hand-right {
-  transform: translate(55px, -12px) rotate(52deg);
-}
-.guardian-reaching .guardian-brow-right {
-  transform: translateY(-4px) rotate(-9deg);
-}
-.guardian-challenge .guardian-hand-right,
-.guardian-checking .guardian-hand-right {
-  transform: translate(10px, -35px) rotate(-12deg);
-}
-.guardian-challenge .guardian-smile,
-.guardian-checking .guardian-smile {
-  opacity: 0;
-}
-.guardian-challenge .guardian-serious,
-.guardian-checking .guardian-serious {
-  opacity: 1;
-}
-.guardian-challenge .guardian-brow-left,
-.guardian-checking .guardian-brow-left {
-  transform: rotate(10deg) translateY(2px);
-}
-.guardian-challenge .guardian-brow-right,
-.guardian-checking .guardian-brow-right {
-  transform: rotate(-10deg) translateY(2px);
-}
-.guardian-success .guardian-hand-right {
-  transform: translate(17px, -69px) rotate(18deg);
-}
-.guardian-success .guardian-eyes {
-  transform: scaleY(0.65);
-  animation: none;
-}
 .guardian-success .guardian-success-mark {
   opacity: 1;
   transform: scale(1);
+}
+.guardian-pointer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid #c9a16c;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px #d6ba8320;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2147483646;
+  contain: layout style;
+}
+.guardian-pointer::after {
+  content: "";
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #c9a16c;
+  left: 7px;
+  top: 7px;
 }
 .guardian-speech {
   display: flex;

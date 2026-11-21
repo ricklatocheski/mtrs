@@ -79,7 +79,7 @@ export default function AnimatedLogin({
         : "idle"
       : stage;
   const caption = {
-    idle: "Pode entrar. Estou de olho por aqui.",
+    idle: "Mova o mouse. Meu olhar acompanha você.",
     private: "Sua senha? Eu não vou olhar.",
     reaching: "Opa, só mais um instante…",
     challenge: "Uma continha antes de continuar?",

@@ -32,7 +32,7 @@ Na Netlify, importe o repositório e use netlify.toml: npm ci && npm run build, 
 
 ## Guardião animado no login
 
-Personagem vetorial original inspirado no símbolo dourado fornecido, mantendo a logo oficial intacta. Os olhos seguem o ponteiro; o rosto reage ao foco, cobre os olhos ao digitar ou revelar a senha e faz um gesto para recolher o botão de entrada. Em seguida, apresenta uma conta aleatória de soma ou subtração, sem resultados negativos. Há retorno ao login, troca de conta e correção de resposta sem perder as credenciais digitadas. Após o desafio, o Supabase valida as credenciais e o vínculo antes de liberar o painel, com uma confirmação animada.
+O próprio símbolo dourado fornecido é usado na cena: rosto de perfil, cocar, círculo e proporções originais. Apenas o olho é articulado sobre a imagem; o personagem genérico foi substituído. O olho segue o ponteiro em todas as etapas em que está descoberto, inclusive no desafio; o rosto reage ao foco, cobre os olhos ao digitar ou revelar a senha e faz um gesto para recolher o botão de entrada. Em seguida, apresenta uma conta aleatória de soma ou subtração, sem resultados negativos. Há retorno ao login, troca de conta e correção de resposta sem perder as credenciais digitadas. Após o desafio, o Supabase valida as credenciais e o vínculo antes de liberar o painel, com uma confirmação animada.
 
 O desafio é uma interação visual local; não é um CAPTCHA nem substitui autenticação, RLS ou as validações de sessão do servidor. Não registra respostas nem senhas no armazenamento do aplicativo. O login persistente válido continua respeitando o prazo original de 24 horas.
 
@@ -92,3 +92,7 @@ Execute npm test, npm run test:e2e e npm run build. Os testes de login real usam
 - tests e e2e: exemplos sintéticos e verificações; examples contém relatório de demonstração.
 
 Repositório: https://github.com/ricklatocheski/mtrs. Nenhum relatório operacional, backup real ou credencial integra o Git ou o ZIP. Os recursos visuais usam a logo fornecida e a textura de madeira do painel de referência. Consulte VALIDACAO.md para resultados e limites.
+
+## Ajuste do símbolo e do ponteiro
+
+O olhar usa a posição real do olho no SVG, com deslocamento visível da pupila. Um destaque dourado acompanha o ponteiro também sobre os campos, sem interceptar cliques. Na preferência de movimento reduzido, a cabeça fica parada e a resposta direta do olho continua ativa, sem transição. Pausar animações centraliza o olho e esconde o destaque. No campo de senha, o gesto de privacidade continua cobrindo o olho.
