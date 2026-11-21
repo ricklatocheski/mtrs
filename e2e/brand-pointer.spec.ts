@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("símbolo original e ponteiro visível: olhar acompanha em campos e no desafio", async ({
+test("símbolo original acompanha o ponteiro sem bolinha visível", async ({
   page,
 }) => {
   await page.goto("/");
@@ -22,15 +22,7 @@ test("símbolo original e ponteiro visível: olhar acompanha em campos e no desa
   const left = await pupils.getAttribute("style");
   await page.mouse.move(1200, 650);
   await expect.poll(() => pupils.getAttribute("style")).not.toBe(left);
-  const halo = page.locator(".guardian-pointer");
-  await expect(halo).toHaveCSS("opacity", "1");
-  await expect(halo).toHaveCSS("pointer-events", "none");
-  await expect
-    .poll(async () => Math.round((await halo.boundingBox()).x + 10))
-    .toBe(1200);
-  await expect
-    .poll(async () => Math.round((await halo.boundingBox()).y + 10))
-    .toBe(650);
+  await expect(page.locator(".guardian-pointer")).toBeHidden();
   await page.getByLabel("Usuário", { exact: true }).fill("demonstracao");
   await page.getByLabel("Senha", { exact: true }).fill("senha-sintetica");
   await page

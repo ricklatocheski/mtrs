@@ -95,8 +95,10 @@ Repositório: https://github.com/ricklatocheski/mtrs. Nenhum relatório operacio
 
 ## Ajuste do símbolo e do ponteiro
 
-O olhar usa a posição real do olho no SVG, com deslocamento visível da pupila. Um destaque dourado acompanha o ponteiro também sobre os campos, sem interceptar cliques. Na preferência de movimento reduzido, a cabeça fica parada e a resposta direta do olho continua ativa, sem transição. No campo de senha, o gesto de privacidade continua cobrindo o olho.
+O olhar usa a posição real do olho no SVG, com deslocamento visível da pupila. O cursor original é preservado, sem bolinha ou destaque sobre os campos. Na preferência de movimento reduzido, a cabeça fica parada e a resposta direta do olho continua ativa, sem transição. No campo de senha, o gesto de privacidade continua cobrindo o olho.
 
 ## Login simplificado
 
 A tela inicial mostra a marca, o símbolo com olhar responsivo e o formulário de usuário e senha. Textos promocionais, etiquetas de ambiente, aviso de sessão, legenda junto ao símbolo e botão de pausa foram retirados. O olho reage ao ponteiro sem animação de piscar contínua; a preferência de movimento reduzido continua respeitada. A validade de 24 horas continua sendo aplicada pelo servidor. Contas de teste foram criadas separadamente para cada projeto, como operadores; suas senhas ficam apenas no arquivo privado entregue ao usuário.
+
+O destaque circular do ponteiro foi ocultado. O movimento do olho continua seguindo a posição do mouse normalmente.
